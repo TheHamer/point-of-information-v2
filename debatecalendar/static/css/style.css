@@ -1,0 +1,97 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background-color: #f9f9f9;
+}
+
+header {
+    background-color: #003E74;
+    height: 5em;
+}
+
+header h1 {
+    margin: 0;
+    text-align: center;
+    color: white;
+    font-size: 3em;
+    padding-top: 0.1em;
+}
+
+.tablebody {
+    margin-top: 28px;
+}
+
+table.comptable {
+    margin-left: auto;
+    margin-right: auto;
+    width: 90%;
+    border-collapse: collapse;
+}
+
+table.comptable th, table.comptable td {
+    border: 1px, solid, #ddd;
+    padding: 6px;
+}
+
+table.comptable tr:nth-child(even) {
+    background-color: #D4EFFC;
+}
+
+table.comptable tr:nth-child(odd) {
+    background-color: #ededed;
+}
+
+table.comptable tr:hover {
+    background-color: #d3d3d3;
+}
+
+table.comptable th {
+    background-color: #003E74;
+    text-align: left;
+    color: white;
+    padding: 6px;
+
+    
+}
+
+.searchfields {
+    margin-left: 5%;
+    margin-right: 5%;
+    margin-top: 28px;
+}
+
+.serch-feild-text {
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 1.5em;
+    width: 100px;
+    border-radius: 5px;
+    border-width: 1px;
+}
+
+.serch-feild-select {
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 1.5em;
+    width: 100px;
+    background-color: white;
+    border-radius: 5px;
+    border-width: 1px;
+    
+}
+
+.serch-button {
+    margin-left: 5px;
+    margin-right: 5px;
+    height: 1.5em;
+    width: 50px;
+    background-color: #D4EFFC;
+    border-radius: 5px;
+    border-width: 1px;
+}
+
+input[type=text]:focus{
+    outline: 2px solid #D4EFFC;
+  }

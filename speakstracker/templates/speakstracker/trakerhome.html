@@ -1,0 +1,103 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Speaks Tracker{% endblock %}
+
+{% block header %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="{% static 'jarvascript/delete_user_modal.js' %}" defer></script>
+<script src="{% static 'jarvascript/brackets_pi.js' %}" defer></script>
+{{ full_data_list|json_script:"full_data_list"}}
+
+{% endblock %}
+
+{% block content %}
+
+<div class="all-home-boxes">
+
+    <div class="home-box">
+        <div class="login-title">
+            <h3>Speaks overview</h3>
+        </div>
+        <div class="account-data-group">
+            <label>Avg speaks:</label>
+            <span>{{ avg }}</span>
+        </div>
+        <div class="account-data-group">
+            <label>Std:</label>
+            <span>{{ std }}</span>
+        </div>
+        <div class="account-data-group">
+            <label>Lowest speaks:</label>
+            <span>{{ min }}</span>
+        </div>
+        <div class="account-data-group">
+            <label>Highest speaks:</label>
+            <span>{{ max }}</span>
+        </div>
+        <div class="account-data-group">
+            <label>No. rounds:</label>
+            <span>{{ no_entries }}</span>
+        </div>
+    </div>
+
+    
+    <div class="home-box">
+        <div class="login-title">
+            <h3>Speaker brackets</h3>
+        </div>
+        <div class="brackets-pi">
+            <canvas id="position-pi"></canvas>
+        </div>
+    </div>
+
+    <div class="home-box">
+        <div class="login-title">
+            <h3>Account details</h3>
+        </div>
+        <div class="account-data-group">
+            <label>Username:</label>
+            <span>{{request.user}}</span>
+        </div>
+        <div class="account-data-group">
+            <label>Email:</label>
+            <span>{{request.user.email}}</span>
+        </div>
+
+        <a href="{% url 'updatedetails' %}">
+            <button class="login-button">Update details</button>
+        </a>
+
+        <a href="{% url 'password_change' %}">
+            <button class="login-button">Change password</button>
+        </a>
+
+        <button class="login-button red-button" onclick='showDeleteUserModal()'>Delete account</button>
+
+    </div>
+</div>
+
+<div id="delete-user-modal">
+    <div class="modal-content">
+        <div class="modal-close-box">
+            <span class="close-modal" onclick="closeDeleteUserModal()">&times;</span>
+        </div>
+        <div class="modal-motion-box">
+            <div class="modal-delete-content" id="motion-content">Warning! This will permantly delete your account and all your data!</div>
+        </div>
+        <div class="modal-motion-box">
+            <div class="modal-motion-content" id="info-slide-content">
+                <form action="{% url 'delete_user' %}" method="POST">
+                    {% csrf_token %}
+                    <span><button class="login-button red-button" onclick="return confirm('Are you sure you want to delete your account?');">Delete account</button>
+                </form>
+            </div>
+            <div class="modal-motion-content" >
+                <button class="login-button" onclick="closeDeleteUserModal()">Cancel</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

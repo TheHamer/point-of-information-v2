@@ -1,0 +1,71 @@
+{% extends 'base.html' %}
+
+{% block title %}Enter Speaks{% endblock %}
+
+{% block content %}
+
+<div class="all-enter-boxes">
+
+    <div class="enter-url-box">
+
+        <div class="login-title">
+            <h3>Enter URL</h3>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in URL_form %}
+                <div class="enter-speaks-label">{{field.label}}</div>
+                <div>{{field}}</div>
+            {% endfor %}
+
+            <div class="enter-message">
+                {% for message in messages %}
+                    {% if "url" in message.tags %}
+                        {{message}}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="login-button">Submit</button>
+        </form>
+
+        <div class="register-message">
+            <p>*required</p>
+        </div>
+        
+    </div>
+    
+    <div class="enter-speaks-box">
+
+        <div class="login-title">
+            <h3>Enter results</h3>
+        </div>
+
+        <form method="POST">
+            {% csrf_token %}
+            {% for field in form %}
+                <div class="enter-speaks-label">{{field.label}}</div>
+                <div>{{field}}</div>
+            {% endfor %}
+
+            <div class="enter-message">
+                {% for message in messages %}
+                    {% if "round" in message.tags %}
+                        {{message}}
+                    {% endif %}
+                {% endfor %}
+            </div>
+
+            <button type="submit" class="login-button">Submit</button>
+
+        </form>
+
+        <div class="register-message">
+            <p>*required</p>
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

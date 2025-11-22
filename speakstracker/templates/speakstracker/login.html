@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block title %}login{% endblock %}
+
+{% block content %}
+
+<div class="login-box">
+
+    <div class="login-title">
+        <h3>Login</h3>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div>
+            <input type="text" name="username" class="password-username" placeholder="Username">
+            <input type="password" name="password" class="password-username" placeholder="Password">
+        </div>
+
+        <div class="login-error">
+            {% for message in messages %}
+                {{message}}
+            {% endfor %}
+        </div>
+
+        <div>
+            <button type="submit" class="login-button">Sign in</button>
+        </div>
+    </form>
+
+
+    <div class="register-message">
+        <p>Forgotten password? Reset <a href="/speakstracker/password_reset">here</a>
+
+            <br>
+            Don't have an account? Register <a href="/speakstracker/register">here</a>
+        </p>
+    </div>
+
+</div>
+
+{% endblock %}

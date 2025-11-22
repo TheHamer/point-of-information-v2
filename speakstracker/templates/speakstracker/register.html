@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Register{% endblock %}
+
+{% block content %}
+<div class="register-box">
+
+    <div class="login-title">
+        <h3>Sign up</h3>
+    </div>
+
+    <form method="POST" action="">
+        {% csrf_token %}
+        {{form.username}}
+
+        {{form.email}}
+
+        {{form.password1}}
+
+        {{form.password2}}
+        
+        <div class="login-error">
+            {% for feild in form %}
+                {% for error in feild.errors %}
+                    <p class="register-error">{{error|escape}}</p>
+                {% endfor %}
+            {% endfor %}
+        </div>
+
+        <button type="submit" class="login-button">Sign up</button>
+    </form>
+
+    <div class="register-message">
+        <p>Already have an account? Login <a href="/speakstracker/login">here</a></p>
+    </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends 'base.html' %}
+
+{% block title %}Update Speaks{% endblock %}
+
+{% block content %}
+
+<div class="update-speaks-box">
+
+    <div class="login-title">
+        <h3>Update Speaks</h3>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="enter-speaks-label">{{field.label}}</div>
+            <div>{{field}}</div>
+        {% endfor %}
+        <button type="submit" class="login-button">Submit</button>
+    </form>
+
+    <div>
+        <a href="{% url 'speakstable' %}">
+            <button class="login-button">Cancel</button>
+        </a>
+    </div>
+
+    <div class="register-message">
+        <p>*required</p>
+    </div>
+
+</div>
+
+
+{% endblock %}

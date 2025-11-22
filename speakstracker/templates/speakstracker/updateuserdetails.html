@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+
+{% block title %}login{% endblock %}
+
+{% block content %}
+
+<div class="update-user-box">
+
+    <div class="login-title">
+        <h3>Update details</h3>
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+
+        <div>
+            {{form.username}}
+            {{form.email}}
+        </div>
+
+        <div class="login-error">
+            {% for message in messages %}
+                {{message}}
+            {% endfor %}
+        </div>
+
+        <div>
+            <button type="submit" class="login-button">Update</button>
+        </div>
+    </form>
+
+    <div>
+        <a href="{% url 'trakerhome' %}">
+            <button class="login-button">Cancel</button>
+        </a>
+    </div>
+
+</div>
+
+{% endblock %}

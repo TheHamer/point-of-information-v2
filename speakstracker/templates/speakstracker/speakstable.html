@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Speaks Table{% endblock %}
+
+{% block header %}
+
+<script src="{% static 'jarvascript/motion_modal.js' %}" defer></script>
+<script src="{% static 'jarvascript/fetch_include.js' %}" defer></script>
+
+{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Your Speaks</h1>
+</div>
+
+<div class="speaks-table-body">
+    <table class="wide-speaks-table">
+        <tr>
+            <th class="wide-speaks-th">Date</th>
+            <th class="wide-speaks-th">Comp</th>
+            <th class="wide-speaks-th">Partner</th>
+            <th class="narrow-speaks-th">Round</th>
+            <th class="narrow-speaks-th">Room Pts</th>
+            <th class="narrow-speaks-th">Position</th>
+            <th class="narrow-speaks-th">Speaker</th>
+            <th class="narrow-speaks-th">Type</th>
+            <th class="narrow-speaks-th">Team Pts</th>
+            <th class="narrow-speaks-th">Speaks</th>
+            <th class="narrow-speaks-th">Motion</th>
+            <th class="narrow-speaks-th">Include</th>
+            <th class="narrow-speaks-th">Update</th>
+            <th class="narrow-speaks-th">Delete</th>
+        </tr>
+            
+        {% for speaks in speaks_data %}
+        <tr class="data-row">
+            {% for key, value in speaks.items %}
+                {% if key == "date" or key == "partner" or key == "tournament" %}
+                    <td class="wide-speaks-td">{{value}}</td>
+                {% elif not key == "id" and not key == "user_id" and not key == "motion" and not key == "info_slide" and not key == "include" %}
+                    <td class="narrow-speaks-td">{{value}}</td>
+                {% endif %}
+            {% endfor %}
+
+            <td class="narrow-speaks-td">
+                {% if speaks.motion or speaks.info_slide %}
+                    <button class="update-button" onclick='showMotion("{{ speaks.motion|escapejs  }}","{{ speaks.info_slide|escapejs }}")'>Motion</button>
+                {% else %}
+                    <button disabled>Motion</button>
+                {% endif %}
+
+            </td>
+
+            <td class="narrow-speaks-td">
+                {% if speaks.include == True %}
+                    <button class="update-button" id='include-"{{ speaks.id }}"' onclick='getInclude("{% url 'includespeaks' speaks.id %}", this.id)'>yes</button>
+                {% else %}
+                    <button class="reverse-update-button" id='include-"{{ speaks.id }}"' onclick='getInclude("{% url 'includespeaks' speaks.id %}", this.id)'>no</button>
+                {% endif %}
+
+            </td>
+            
+            <td class="narrow-speaks-td">
+                <a href="{{ speaks.id }}">
+                        <button class="update-button">update</button>
+                </a>
+            </td>
+
+            <td class="narrow-speaks-td">
+                <form action="{% url 'deletespeaks' speaks.id %}" method="POST">
+                    {% csrf_token %}
+                    <span><button class="delete-button" onclick="return confirm('Are you sure?');">delete</button>
+                </form>
+            </td>
+            
+        </tr>
+        {% endfor %}
+
+    </table>
+</div>
+
+<div id="motion-modal">
+    <div class="modal-content">
+        <div class="modal-close-box">
+            <span class="close-modal" onclick="closeMotion()">&times;</span>
+        </div>
+        <div class="modal-motion-box">
+            <div class="modal-motion-title">Motion</div>
+            <div class="modal-motion-content" id="motion-content"></div>
+        </div>
+        <div class="modal-motion-box">
+            <div class="modal-motion-title">Info slide</div>
+            <div class="modal-motion-content" id="info-slide-content"></div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
