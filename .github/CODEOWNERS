@@ -1,0 +1,5 @@
+# This is a CODEOWNERS file
+# Each line is a file pattern followed by one or more owners.
+# These owners will be automatically requested for review when someone opens a pull request that modifies files matching the pattern.
+
+* @TheHamer
