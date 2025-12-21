@@ -14,36 +14,31 @@ class speaks_analysis:
 
     def __init__(self, user_qs):
         self.user_qs = user_qs
+    
+    def _safe_round(self, value, default=0):
+        """Helper method to safely round a value, returning default if None."""
+        return round(value, 2) if value is not None else default
+    
+    def _calculate_averages(self, queryset):
+        """Helper method to calculate averages for a queryset."""
+        speak_avg = self._safe_round(queryset.aggregate(Avg('speaker_score'))['speaker_score__avg'])
+        point_avg = self._safe_round(queryset.aggregate(Avg('team_points'))['team_points__avg'])
+        count = queryset.count() or 0
+        return speak_avg, point_avg, count
 
     def speaks_per_position(self):
         """Calculate average speaks per speaker position."""
         position_qs = self.user_qs.exclude(speaker_position__isnull=True)
-        if not position_qs:
+        if not position_qs.exists():
             return None, None
 
         position_avg = {}
         positions = ["PM", "DPM", "LO", "DLO", "MG", "GW", "MO", "OW"]
 
         for position in positions:
-            position_qs = self.user_qs.filter(speaker_position=position)
-            speak_avg = position_qs.aggregate(Avg('speaker_score'))['speaker_score__avg']
-            point_avg = position_qs.aggregate(Avg('team_points'))['team_points__avg']
-            no_entires = position_qs.count()
-
-            if speak_avg is None:
-                speak_avg = 0
-            else:
-                speak_avg = round(speak_avg, 2)
-            
-            if point_avg is None:
-                point_avg = 0
-            else:
-                point_avg = round(point_avg, 2)
-
-            if no_entires is None:
-                no_entires = 0
-
-            position_avg.update({position: [position, no_entires, speak_avg, point_avg]})
+            filtered_qs = self.user_qs.filter(speaker_position=position)
+            speak_avg, point_avg, count = self._calculate_averages(filtered_qs)
+            position_avg[position] = [position, count, speak_avg, point_avg]
 
         grouped_positions = {
             "PM and LO": ["PM and LO"],
@@ -68,11 +63,11 @@ class speaks_analysis:
         ]
 
         for group in groups:
-            for i in range(1,4):
-                if position_avg[group[1]][i] and position_avg[group[2]][i]:
-                    grouped_positions[group[0]].append(round(position_avg[group[1]][i] + position_avg[group[2]][i], 2)/2)
-                else:
-                    grouped_positions[group[0]].append(round(position_avg[group[1]][i] + position_avg[group[2]][i], 2))
+            pos1_data = position_avg[group[1]]
+            pos2_data = position_avg[group[2]]
+            for i in range(1, 4):
+                value = (pos1_data[i] + pos2_data[i]) / 2 if pos1_data[i] and pos2_data[i] else (pos1_data[i] + pos2_data[i])
+                grouped_positions[group[0]].append(round(value, 2))
 
         return position_avg, grouped_positions,
 
@@ -85,95 +80,12 @@ class speaks_analysis:
         
         room_points_avg = {}
 
-        for points in range(max_points+1):
+        for points in range(max_points + 1):
             points_qs = self.user_qs.filter(room_points=points)
-            speak_avg = points_qs.aggregate(Avg('speaker_score'))['speaker_score__avg']
-            point_avg = points_qs.aggregate(Avg('team_points'))['team_points__avg']
-            no_entires = points_qs.count()
-
-            if speak_avg is None:
-                speak_avg = 0
-            else:
-                speak_avg = round(speak_avg, 2)
-            
-            if point_avg is None:
-                point_avg = 0
-            else:
-                point_avg = round(point_avg, 2)
-
-            if no_entires is None:
-                no_entires = 0
-
-            room_points_avg.update({points: [points, no_entires, speak_avg, point_avg]})
+            speak_avg, point_avg, count = self._calculate_averages(points_qs)
+            room_points_avg[points] = [points, count, speak_avg, point_avg]
 
         return room_points_avg
-    
-    def speaks_per_average_points(self, bucket_size=0.25):
-        """
-        Calculate average speaks grouped by average points so far.
-        
-        Uses the model's average_points_so_far property for calculation.
-        
-        Args:
-            bucket_size: Size of each average points bucket (default 0.25)
-        
-        Returns:
-            Dict with bucket ranges as keys, containing:
-            - bucket_label (str): The bucket range label (e.g., "1.00-1.25")
-            - avg_points (float): The bucket midpoint for x-axis
-            - count (int): Number of entries
-            - speak_avg (float): Average speaker score
-            - team_points_avg (float): Average team points in round
-        """
-        # Filter to only entries with valid round numbers
-        valid_qs = self.user_qs.exclude(round__isnull=True)
-        
-        if not valid_qs.exists():
-            return None
-        
-        # Calculate average points for each entry and group into buckets
-        buckets = defaultdict(list)
-        
-        for entry in valid_qs:
-            # Use model property for average points calculation
-            avg_pts = entry.average_points_so_far
-            
-            # Determine bucket (floor to nearest bucket_size)
-            bucket_floor = (avg_pts // bucket_size) * bucket_size
-            bucket_key = round(bucket_floor, 2)
-            
-            buckets[bucket_key].append({
-                'speaker_score': entry.speaker_score,
-                'team_points': entry.team_points
-            })
-        
-        # Calculate averages for each bucket
-        result = {}
-        
-        for bucket_key in sorted(buckets.keys()):
-            entries = buckets[bucket_key]
-            count = len(entries)
-            
-            # Calculate speaker score average
-            scores = [e['speaker_score'] for e in entries if e['speaker_score'] is not None]
-            speak_avg = round(sum(scores) / len(scores), 2) if scores else 0
-            
-            # Calculate team points average
-            points = [e['team_points'] for e in entries if e['team_points'] is not None]
-            team_points_avg = round(sum(points) / len(points), 2) if points else 0
-            
-            bucket_end = round(bucket_key + bucket_size, 2)
-            bucket_label = f"{bucket_key:.2f}-{bucket_end:.2f}"
-            
-            result[bucket_key] = {
-                'bucket_label': bucket_label,
-                'avg_points': round(bucket_key + bucket_size / 2, 3),  # Midpoint for x-axis
-                'count': count,
-                'speak_avg': speak_avg,
-                'team_points_avg': team_points_avg
-            }
-        
-        return result
     
     def get_average_points_chart_data(self):
         """
@@ -220,6 +132,39 @@ class speaks_analysis:
         
         return speaker_data, team_data, best_fit_line
     
+    def _calculate_best_fit_line(self, data):
+        """
+        Calculate best fit line for given data.
+        
+        Args:
+            data: List of dicts with 'x' and 'y' keys
+        
+        Returns:
+            Dict with 'slope', 'intercept', and 'points', or None if insufficient data
+        """
+        import numpy as np
+        
+        if not data or len(data) < 2:
+            return None
+        
+        x_vals = [d['x'] for d in data]
+        y_vals = [d['y'] for d in data]
+        
+        try:
+            slope, intercept = np.polyfit(x_vals, y_vals, 1)
+            x_min, x_max = min(x_vals), max(x_vals)
+            
+            return {
+                'slope': float(slope),
+                'intercept': float(intercept),
+                'points': [
+                    {'x': x_min, 'y': float(slope * x_min + intercept)},
+                    {'x': x_max, 'y': float(slope * x_max + intercept)}
+                ]
+            }
+        except Exception:
+            return None
+    
     def _calculate_best_fit_lines(self, speaker_data, team_data):
         """
         Calculate best fit lines for speaker and team data.
@@ -228,123 +173,36 @@ class speaks_analysis:
             Dict with 'speaker' and 'team' keys, each containing:
             {'slope': float, 'intercept': float, 'points': [{'x': float, 'y': float}, ...]}
         """
-        import numpy as np
-        
-        result = {'speaker': None, 'team': None}
-        
-        # Best fit line for speaker scores
-        if speaker_data and len(speaker_data) > 1:
-            x_vals = [d['x'] for d in speaker_data]
-            y_vals = [d['y'] for d in speaker_data]
-            
-            try:
-                slope, intercept = np.polyfit(x_vals, y_vals, 1)
-                x_min, x_max = min(x_vals), max(x_vals)
-                
-                result['speaker'] = {
-                    'slope': float(slope),
-                    'intercept': float(intercept),
-                    'points': [
-                        {'x': x_min, 'y': float(slope * x_min + intercept)},
-                        {'x': x_max, 'y': float(slope * x_max + intercept)}
-                    ]
-                }
-            except Exception as e:
-                pass
-        
-        # Best fit line for team points
-        if team_data and len(team_data) > 1:
-            x_vals = [d['x'] for d in team_data]
-            y_vals = [d['y'] for d in team_data]
-            
-            try:
-                slope, intercept = np.polyfit(x_vals, y_vals, 1)
-                x_min, x_max = min(x_vals), max(x_vals)
-                
-                result['team'] = {
-                    'slope': float(slope),
-                    'intercept': float(intercept),
-                    'points': [
-                        {'x': x_min, 'y': float(slope * x_min + intercept)},
-                        {'x': x_max, 'y': float(slope * x_max + intercept)}
-                    ]
-                }
-            except Exception as e:
-                pass
-        
-        return result
+        return {
+            'speaker': self._calculate_best_fit_line(speaker_data),
+            'team': self._calculate_best_fit_line(team_data)
+        }
 
     def speaks_per_partner(self):
         """Calculate average speaks per partner."""
         partner_avg = {}
-        partners = set(self.user_qs.values_list("partner"))
-        
+        partners = self.user_qs.exclude(partner__isnull=True).values_list("partner", flat=True).distinct()
+
         for partner in partners:
+            partner_qs = self.user_qs.filter(partner=partner)
+            speak_avg, point_avg, count = self._calculate_averages(partner_qs)
+            partner_avg[partner] = [partner, count, speak_avg, point_avg]
 
-            partner = partner[0]
-
-            if partner != None:
-                partner_qs = self.user_qs.filter(partner=partner)
-                speak_avg = partner_qs.aggregate(Avg('speaker_score'))['speaker_score__avg']
-                point_avg = partner_qs.aggregate(Avg('team_points'))['team_points__avg']
-                no_entires = partner_qs.count()
-
-                if speak_avg is None:
-                    speak_avg = 0
-                else:
-                    speak_avg = round(speak_avg, 2)
-                
-                if point_avg is None:
-                    point_avg = 0
-                else:
-                    point_avg = round(point_avg, 2)
-
-                if no_entires is None:
-                    no_entires = 0
-
-                partner_avg.update({partner: [partner, no_entires, speak_avg, point_avg]})
-
-        if not partner_avg:
-            return None
-        
-        return partner_avg
+        return partner_avg if partner_avg else None
 
     def speaks_per_motion_type(self):
         """Calculate average speaks per motion type."""
         motion_avg = {}
-        motion_types = set(self.user_qs.values_list("motion_type"))
+        motion_types = self.user_qs.exclude(motion_type__isnull=True).values_list("motion_type", flat=True).distinct()
 
-        for montion_type in motion_types:
+        for motion_type in motion_types:
+            motion_qs = self.user_qs.filter(motion_type=motion_type)
+            speak_avg, point_avg, count = self._calculate_averages(motion_qs)
+            motion_avg[motion_type] = [motion_type, count, speak_avg, point_avg]
 
-            montion_type = montion_type[0]
-
-            if montion_type != None:
-                motion_qs = self.user_qs.filter(motion_type=montion_type)
-                speak_avg = motion_qs.aggregate(Avg('speaker_score'))['speaker_score__avg']
-                point_avg = motion_qs.aggregate(Avg('team_points'))['team_points__avg']
-                no_entires = motion_qs.count()
-
-                if speak_avg is None:
-                    speak_avg = 0
-                else:
-                    speak_avg = round(speak_avg, 2)
-                
-                if point_avg is None:
-                    point_avg = 0
-                else:
-                    point_avg = round(point_avg, 2)
-
-                if no_entires is None:
-                    no_entires = 0
-
-                motion_avg.update({montion_type: [montion_type, no_entires, speak_avg, point_avg]})
-
-        if not motion_avg:
-            return None
-            
-        return motion_avg
+        return motion_avg if motion_avg else None
     
-    def positional_win_rate_heatmap(self, primary_position=None):
+    def positional_win_rate_heatmap(self):
         """
         Calculate win rates for each position against other positions.
         
@@ -353,10 +211,6 @@ class speaks_analysis:
         
         For example, if you are CG and you are above OG in the call, that counts
         as a win against OG when you are CG.
-        
-        Args:
-            primary_position: If specified, only calculate for this position.
-                            If None, calculate for all positions.
         
         Returns:
             Dict structured as:
@@ -370,8 +224,7 @@ class speaks_analysis:
             placed higher than the column position (i.e., how often you win against that position).
         """
         # Filter to entries with team position and team points
-        valid_qs = self.user_qs.exclude(team_position__isnull=True)
-        valid_qs = valid_qs.exclude(team_points__isnull=True)
+        valid_qs = self.user_qs.exclude(team_position__isnull=True).exclude(team_points__isnull=True)
         
         if not valid_qs.exists():
             return None
