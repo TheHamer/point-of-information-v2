@@ -682,7 +682,8 @@ const SpeaksOverview = (function() {
         std: null,
         min: null,
         max: null,
-        count: 0
+        count: 0,
+        avgPoints: null
       };
     }
     
@@ -691,13 +692,19 @@ const SpeaksOverview = (function() {
       .map(entry => entry.speaker_score)
       .filter(score => score !== null && score !== undefined);
     
+    // Extract team points
+    const points = filteredData
+      .map(entry => entry.team_points)
+      .filter(points => points !== null && points !== undefined);
+    
     if (scores.length === 0) {
       return {
         avg: null,
         std: null,
         min: null,
         max: null,
-        count: 0
+        count: 0,
+        avgPoints: points.length > 0 ? roundTo(points.reduce((acc, val) => acc + val, 0) / points.length, 2) : null
       };
     }
     
@@ -713,12 +720,18 @@ const SpeaksOverview = (function() {
     const min = Math.min(...scores);
     const max = Math.max(...scores);
     
+    // Calculate average points
+    const avgPoints = points.length > 0 
+      ? roundTo(points.reduce((acc, val) => acc + val, 0) / points.length, 2)
+      : null;
+    
     return {
       avg: roundTo(avg, 2),
       std: roundTo(std, 2),
       min: min,
       max: max,
-      count: scores.length
+      count: scores.length,
+      avgPoints: avgPoints
     };
   }
   
@@ -741,12 +754,14 @@ const SpeaksOverview = (function() {
     const minEl = document.getElementById('overview-min');
     const maxEl = document.getElementById('overview-max');
     const countEl = document.getElementById('overview-count');
+    const avgPointsEl = document.getElementById('overview-avg-points');
     
     if (avgEl) avgEl.textContent = stats.avg !== null ? stats.avg : '-';
     if (stdEl) stdEl.textContent = stats.std !== null ? stats.std : '-';
     if (minEl) minEl.textContent = stats.min !== null ? stats.min : '-';
     if (maxEl) maxEl.textContent = stats.max !== null ? stats.max : '-';
     if (countEl) countEl.textContent = stats.count;
+    if (avgPointsEl) avgPointsEl.textContent = stats.avgPoints !== null ? stats.avgPoints : '-';
   }
   
   /**
