@@ -34,16 +34,21 @@ const FilterState = (function() {
   
   /**
    * Calculate average points so far for an entry
+   * Matches Python model property: average_points_so_far
+   * Formula: room_points / (round - 1) for round > 1
+   * Returns 1.5 for round 1 or if round/room_points is None
    */
   function calcAvgPoints(entry) {
-    const round = entry.round || 0;
-    const roomPoints = entry.room_points || 0;
-    const teamPoints = entry.team_points || 0;
+    const round = entry.round;
+    const roomPoints = entry.room_points;
     
-    if (round === 0) return 1.5;
-    // room_points is cumulative BEFORE current round, so add current round's points
-    const cumulativePoints = roomPoints + teamPoints;
-    return cumulativePoints / round;
+    if (round === null || round === undefined || round === 1) {
+      return 1.5;
+    }
+    if (roomPoints === null || roomPoints === undefined) {
+      return 1.5;
+    }
+    return roomPoints / (round - 1);
   }
   
   /**
@@ -333,6 +338,7 @@ const FilterUI = (function() {
     initSpeakerPositionButtons();
     initPartnerSelect();
     initDateRangeSlider();
+    initAvgPointsRangeSlider();
     initClearButton();
   }
   
@@ -477,6 +483,55 @@ const FilterUI = (function() {
     container.appendChild(startLabel);
     container.appendChild(endLabel);
   }
+
+  /**
+   * Initialize average points per room range slider
+   */
+  function initAvgPointsRangeSlider() {
+    const container = document.getElementById('avg-points-range-filters');
+    if (!container) return;
+    
+    // Create range inputs
+    const minLabel = document.createElement('label');
+    minLabel.textContent = 'Min: ';
+    const minInput = document.createElement('input');
+    minInput.type = 'number';
+    minInput.id = 'avg-points-min';
+    minInput.className = 'filter-range';
+    minInput.min = '0';
+    minInput.max = '3';
+    minInput.step = '0.1';
+    minInput.value = '0';
+    minInput.style.width = '80px';
+    minLabel.appendChild(minInput);
+    
+    const maxLabel = document.createElement('label');
+    maxLabel.textContent = ' Max: ';
+    const maxInput = document.createElement('input');
+    maxInput.type = 'number';
+    maxInput.id = 'avg-points-max';
+    maxInput.className = 'filter-range';
+    maxInput.min = '0';
+    maxInput.max = '3';
+    maxInput.step = '0.1';
+    maxInput.value = '3';
+    maxInput.style.width = '80px';
+    maxLabel.appendChild(maxInput);
+    
+    const updateRange = () => {
+      const min = parseFloat(minInput.value) || 0;
+      const max = parseFloat(maxInput.value) || 3;
+      FilterState.setAvgPointsRange(min, max);
+    };
+    
+    minInput.addEventListener('change', updateRange);
+    minInput.addEventListener('input', updateRange);
+    maxInput.addEventListener('change', updateRange);
+    maxInput.addEventListener('input', updateRange);
+    
+    container.appendChild(minLabel);
+    container.appendChild(maxLabel);
+  }
   
   /**
    * Initialize clear all button
@@ -502,6 +557,11 @@ const FilterUI = (function() {
       const dateEnd = document.getElementById('date-end');
       if (dateStart) dateStart.value = '';
       if (dateEnd) dateEnd.value = '';
+      
+      const avgPointsMin = document.getElementById('avg-points-min');
+      const avgPointsMax = document.getElementById('avg-points-max');
+      if (avgPointsMin) avgPointsMin.value = '0';
+      if (avgPointsMax) avgPointsMax.value = '3';
     });
   }
   

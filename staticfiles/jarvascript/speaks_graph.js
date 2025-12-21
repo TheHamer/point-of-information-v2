@@ -143,13 +143,20 @@ const AveragePointsChart = (function() {
     teamPointsData = [];
     
     data.forEach(entry => {
-      // Calculate average points so far
-      const round = entry.round || 0;
-      const roomPoints = entry.room_points || 0;
-      const teamPoints = entry.team_points || 0;
-      // room_points is cumulative BEFORE current round, so add current round's points
-      const cumulativePoints = roomPoints + teamPoints;
-      const avgPoints = round === 0 ? 1.5 : cumulativePoints / round;
+      // Calculate average points so far (matches Python model: average_points_so_far)
+      // Formula: room_points / (round - 1) for round > 1
+      // Returns 1.5 for round 1 or if round/room_points is None
+      const round = entry.round;
+      const roomPoints = entry.room_points;
+      
+      let avgPoints;
+      if (round === null || round === undefined || round === 1) {
+        avgPoints = 1.5;
+      } else if (roomPoints === null || roomPoints === undefined) {
+        avgPoints = 1.5;
+      } else {
+        avgPoints = roomPoints / (round - 1);
+      }
       
       // Add speaker score point if available
       if (entry.speaker_score !== null && entry.speaker_score !== undefined) {
