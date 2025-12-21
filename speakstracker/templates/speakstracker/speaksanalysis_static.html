@@ -1,212 +1,28 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Speaks Analysis{% endblock %}
+{% block title %}Static Analysis{% endblock %}
 
 {% block header %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
 
-<!-- Filter and Chart Scripts -->
-<script src="{% static 'jarvascript/filters.js' %}" defer></script>
+<!-- Chart Scripts -->
 <script src="{% static 'jarvascript/speaks_graph.js' %}" defer></script>
-<script src="{% static 'jarvascript/positional_heatmap.js' %}" defer></script>
-<script src="{% static 'jarvascript/variable_by_time.js' %}" defer></script>
 
 <!-- Data -->
 {{ position_speak_avg|json_script:"position_speak_avg" }}
 {{ grouped_position_avg|json_script:"grouped_position_avg" }}
 {{ room_points_avg|json_script:"room_points_avg" }}
-{{ avg_points_data|json_script:"avg_points_data" }}
-{{ avg_points_team_data|json_script:"avg_points_team_data" }}
-{{ avg_points_best_fit|json_script:"avg_points_best_fit" }}
 {{ partner_avg|json_script:"partner_avg" }}
 {{ motion_avg|json_script:"motion_avg" }}
 {{ full_data_list|json_script:"full_data_list"}}
-{{ speaks_vs_time|json_script:"speaks_vs_time" }}
-{{ filter_options|json_script:"filter_options" }}
-{{ heatmap_data|json_script:"heatmap_data" }}
 
 <style>
-/* Filter Controls Styling */
-.filter-section {
-    background: #1e1e2e;
-    border-radius: 8px;
-    padding: 16px;
-    margin-bottom: 24px;
-}
-
-.filter-controls {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-    align-items: flex-start;
-}
-
-.filter-group {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.filter-group label {
-    font-size: 0.85em;
-    color: #888;
-    font-weight: 500;
-}
-
-.filter-btn-group {
-    display: flex;
-    gap: 4px;
-    flex-wrap: wrap;
-}
-
-.filter-btn {
-    padding: 6px 12px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 0.9em;
-    transition: all 0.2s ease;
-}
-
-.filter-btn:hover {
-    background: #3d3d5c;
-}
-
-.filter-btn.active {
-    background: #5865f2;
-    border-color: #5865f2;
-    color: #fff;
-}
-
-.filter-btn.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-}
-
-.filter-select {
-    padding: 6px 10px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
-    min-width: 150px;
-}
-
-.filter-date {
-    padding: 6px 10px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
-}
-
-#clear-filters {
-    padding: 8px 16px;
-    background: #dc3545;
-    border: none;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-#clear-filters:hover {
-    background: #c82333;
-}
-
 .no-data {
     color: #888;
     font-style: italic;
-}
-
-/* Heatmap Section */
-.heatmap-section {
-    background: #1e1e2e;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
-.heatmap-container {
-    max-width: 100%;
-    margin: 0;
-}
-
-/* Average Points Chart */
-.avg-points-section {
-    margin-bottom: 24px;
-    flex-direction: column;
-    align-items: center;
-    position: relative;
-}
-
-.avg-points-chart-container {
-    width: 85%;
-    height: 300px !important;
-    max-height: 300px !important;
-    min-height: 300px !important;
-    position: relative;
-    overflow: hidden;
-}
-
-.avg-points-section canvas {
-    max-width: 100%;
-    height: 300px !important;
-    max-height: 300px !important;
-    min-height: 300px !important;
-}
-
-.toggle-container {
-    margin-top: 12px;
-    text-align: center;
-    width: 100%;
-}
-
-.toggle-btn {
-    padding: 8px 16px;
-    background: #5865f2;
-    border: none;
-    color: #fff;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.toggle-btn:hover {
-    background: #4752c4;
-}
-
-/* Active filter indicator */
-.filter-active-indicator {
-    background: #5865f2;
-    color: #fff;
-    padding: 4px 8px;
-    border-radius: 4px;
-    font-size: 0.8em;
-    margin-left: auto;
-}
-
-/* Overview and Positional Analysis side by side */
-.overview-heatmap-container {
-    display: flex;
-    gap: 24px;
-    align-items: flex-start;
-    flex-wrap: wrap;
-}
-
-.overview-section {
-    flex: 1;
-    min-width: 250px;
-}
-
-.heatmap-section-wrapper {
-    flex: 1;
-    min-width: 400px;
 }
 </style>
 {% endblock %}
@@ -214,147 +30,7 @@
 {% block content %}
 
 <div class="page-title">
-    <h1>Speaks Analysis</h1>
-</div>
-
-<!-- Filter Controls -->
-<div class="filter-section" id="filter-controls">
-    <div class="filter-controls">
-        <!-- Team Position Filter -->
-        <div class="filter-group">
-            <label>Team Position</label>
-            <div class="filter-btn-group" id="team-position-filters">
-                <!-- Buttons generated by JS -->
-            </div>
-        </div>
-        
-        <!-- Speaker Position Filter -->
-        <div class="filter-group">
-            <label>Speaker Position</label>
-            <div class="filter-btn-group" id="speaker-position-filters">
-                <!-- Buttons generated by JS -->
-            </div>
-        </div>
-        
-        <!-- Partner Filter -->
-        <div class="filter-group">
-            <label>Partner</label>
-            <div id="partner-filters">
-                <!-- Select generated by JS -->
-            </div>
-        </div>
-        
-        <!-- Date Range Filter -->
-        <div class="filter-group">
-            <label>Date Range</label>
-            <div id="date-range-filters">
-                <!-- Date inputs generated by JS -->
-            </div>
-        </div>
-        
-        <!-- Clear Button -->
-        <div class="filter-group" style="justify-content: flex-end;">
-            <label>&nbsp;</label>
-            <button id="clear-filters">Clear All</button>
-        </div>
-    </div>
-</div>
-
-<!-- Overview and Positional Analysis Side by Side -->
-<div class="overview-heatmap-container">
-    <!-- Speaks Overview -->
-    <div class="overview-section">
-        <div class="table-title">
-            <h3>Overview</h3>
-        </div>
-        <div class="speaks-table-body-anlsis">
-            <table class="speaks-table">
-                <tr>
-                    <th>Metric</th>
-                    <th>Value</th>
-                </tr>
-                <tr class="data-row">
-                    <td>Avg speaks</td>
-                    <td id="overview-avg">-</td>
-                </tr>
-                <tr class="data-row">
-                    <td>Std</td>
-                    <td id="overview-std">-</td>
-                </tr>
-                <tr class="data-row">
-                    <td>Lowest speaks</td>
-                    <td id="overview-min">-</td>
-                </tr>
-                <tr class="data-row">
-                    <td>Highest speaks</td>
-                    <td id="overview-max">-</td>
-                </tr>
-                <tr class="data-row">
-                    <td>No. rounds</td>
-                    <td id="overview-count">-</td>
-                </tr>
-            </table>
-            <div class="clear-float"></div>
-        </div>
-    </div>
-    
-    <!-- Positional Analysis (Heatmap) -->
-    <div class="heatmap-section-wrapper">
-        <div class="table-title">
-            <h3>Positional Analysis</h3>
-        </div>
-        <div class="speaks-table-body-graph">
-            <div class="heatmap-container" id="positional-heatmap">
-                {% if heatmap_data is not None %}
-                    <!-- Heatmap rendered by JS -->
-                {% else %}
-                    <div class="no-data-graph">
-                        <h3>No positional data available</h3>
-                        <p>Add tournament data with team positions to see win rate analysis.</p>
-                    </div>
-                {% endif %}
-            </div>
-            <div class="clear-float"></div>
-        </div>
-    </div>
-</div>
-
-<!-- Speaks vs Time -->
-<div class="table-title">
-    <h3>Speaks vs time</h3>
-</div>
-
-<div class="speaks-table-body-graph">
-    {% if speaks_vs_time is not None %}
-        <canvas id="speaks_vs_time_chart"></canvas>
-        <div class="clear-float"></div>
-    {% else %}
-        <div class="no-data-graph">
-            <h3>No data to show</h3>
-        </div>
-    {% endif %}
-</div>
-<div class="change-graph-box"></div>
-
-<!-- Average Points So Far -->
-<div class="table-title">
-    <h3>Average Points So Far</h3>
-</div>
-
-<div class="speaks-table-body-graph avg-points-section">
-    {% if avg_points_data is not None %}
-        <div class="avg-points-chart-container">
-            <canvas id="avg_points_chart"></canvas>
-        </div>
-        <div class="toggle-container">
-            <button class="toggle-btn" id="avg-points-toggle">Show Team Points</button>
-        </div>
-        <div class="clear-float"></div>
-    {% else %}
-        <div class="no-data-graph">
-            <h3>No data to show</h3>
-        </div>
-    {% endif %}
+    <h1>Static Analysis</h1>
 </div>
 
 <!-- Speaker Position -->
@@ -619,3 +295,4 @@
 </div>
 
 {% endblock %}
+

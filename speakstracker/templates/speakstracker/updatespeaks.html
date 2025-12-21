@@ -15,18 +15,21 @@
         {% for field in form %}
             <div class="enter-speaks-label">{{field.label}}</div>
             <div>{{field}}</div>
+            {% if field.help_text and field.name == 'opponent_positions' %}
+                <div class="enter-speaks-help-text">{{field.help_text}}</div>
+            {% endif %}
         {% endfor %}
+        <div class="register-message">
+            <p>*required</p>
+        </div>
         <button type="submit" class="login-button">Submit</button>
     </form>
+
 
     <div>
         <a href="{% url 'speakstable' %}">
             <button class="login-button">Cancel</button>
         </a>
-    </div>
-
-    <div class="register-message">
-        <p>*required</p>
     </div>
 
 </div>

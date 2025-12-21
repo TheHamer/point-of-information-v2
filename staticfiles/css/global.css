@@ -199,6 +199,11 @@ header .dropdown a:hover {
     display: none;
 }
 
+.graph-dropdown[multiple] {
+    min-height: 100px;
+    width: 150px;
+}
+
 /* speaks table */
 
 .speaks-table-body {
@@ -275,6 +280,12 @@ header .dropdown a:hover {
     width: 70px;
 }
 
+.wide-speaks-table th.call-speaks-th {
+    text-align: left;
+    height: 30px;
+    width: 140px;
+}
+
 .wide-speaks-table td {
     height: 30px;
     border-top: 1px solid #ededed;
@@ -304,6 +315,12 @@ header .dropdown a:hover {
 
 .narrow-speaks-td {
     min-width: 60px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.call-speaks-td {
+    min-width: 120px;
     overflow: hidden;
     white-space: nowrap;
 }
@@ -781,7 +798,7 @@ header .dropdown a:hover {
 .enter-speaks-box {
     width: 90%;
     max-width: 350px;
-    height: 820.0px;
+    min-height: 820.0px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -818,10 +835,18 @@ select.enter-speaks-select option {
     margin-top: 4px;
 }
 
+.enter-speaks-help-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
 .enter-url-box {
     width: 90%;
     max-width: 350px;
-    height: 380px;
+    min-height: 300px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -837,9 +862,30 @@ select.enter-speaks-select option {
     color: #BF40BF;
 }
 
+.enter-url-box form .register-message,
+.enter-speaks-box form .register-message,
+.update-speaks-box form .register-message {
+    position: relative !important;
+    z-index: 2;
+    clear: both;
+    display: block;
+    margin-top: 5px;
+    margin-bottom: 5px;
+    padding: 0;
+}
+
+.enter-url-box form .login-button,
+.enter-speaks-box form .login-button,
+.update-speaks-box form .login-button {
+    margin-top: 0;
+    position: relative;
+    z-index: 3;
+}
+
 @media only screen and (min-width: 700px) {
     .all-enter-boxes {
       display: flex;
+      align-items: flex-start;
     }
 
 }

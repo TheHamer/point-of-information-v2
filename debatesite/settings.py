@@ -34,7 +34,9 @@ if os.path.isfile(dotenv_file):
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Set DEBUG=True for local development to enable static file serving
+# For production, set DEBUG=False and configure a web server to serve static files
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['138.68.173.138', '127.0.0.1', 'point-of-information.com', 'www.point-of-information.com']
 
@@ -96,6 +98,32 @@ DATABASES = {
         'PORT': '',
     }
 }
+
+# #region agent log
+import json
+import time
+log_path = os.path.join(BASE_DIR, '.cursor', 'debug.log')
+try:
+    with open(log_path, 'a') as f:
+        f.write(json.dumps({
+            'id': f'log_{int(time.time() * 1000)}_settings',
+            'timestamp': int(time.time() * 1000),
+            'location': 'settings.py:98',
+            'message': 'Database configuration loaded',
+            'data': {
+                'database_name': os.environ.get('DATABASE_NAME', 'NOT_SET'),
+                'database_user': os.environ.get('DATABASE_USER', 'NOT_SET'),
+                'database_host': 'localhost',
+                'database_port': '',
+                'engine': 'django.db.backends.postgresql_psycopg2'
+            },
+            'sessionId': 'debug-session',
+            'runId': 'run1',
+            'hypothesisId': 'D'
+        }) + '\n')
+except Exception:
+    pass
+# #endregion
 
 """
 DATABASES = {

@@ -30,6 +30,7 @@
             <th class="narrow-speaks-th">Team Pts</th>
             <th class="narrow-speaks-th">Speaks</th>
             <th class="narrow-speaks-th">Motion</th>
+            <th class="call-speaks-th">Call</th>
             <th class="narrow-speaks-th">Include</th>
             <th class="narrow-speaks-th">Update</th>
             <th class="narrow-speaks-th">Delete</th>
@@ -40,7 +41,7 @@
             {% for key, value in speaks.items %}
                 {% if key == "date" or key == "partner" or key == "tournament" %}
                     <td class="wide-speaks-td">{{value}}</td>
-                {% elif not key == "id" and not key == "user_id" and not key == "motion" and not key == "info_slide" and not key == "include" %}
+                {% elif not key == "id" and not key == "user_id" and not key == "motion" and not key == "info_slide" and not key == "include" and not key == "call" and not key == "opponent_positions" %}
                     <td class="narrow-speaks-td">{{value}}</td>
                 {% endif %}
             {% endfor %}
@@ -52,6 +53,14 @@
                     <button disabled>Motion</button>
                 {% endif %}
 
+            </td>
+
+            <td class="call-speaks-td">
+                {% if speaks.call %}
+                    {{ speaks.call }}
+                {% else %}
+                    —
+                {% endif %}
             </td>
 
             <td class="narrow-speaks-td">

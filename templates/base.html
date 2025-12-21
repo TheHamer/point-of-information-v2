@@ -30,7 +30,8 @@
                     {% if user.is_authenticated %}
                         <li><a href="/speakstracker/enterspeaks/">Enter speaks</a></li>
                         <li><a href="/speakstracker/speakstable/">Speaks data</a></li>
-                        <li><a href="/speakstracker/speaksanalysis/">Analysis</a></li>
+                        <li><a href="/speakstracker/speaksanalysis/static/">Static</a></li>
+                        <li><a href="/speakstracker/speaksanalysis/dynamic/">Dynamic</a></li>
                     {% endif %}
 
                 </ul>
@@ -58,7 +59,8 @@
                 {% if user.is_authenticated %}
                     <a href="/speakstracker/enterspeaks/">Enter speaks</a>
                     <a href="/speakstracker/speakstable/">Speaks data</a>
-                    <a href="/speakstracker/speaksanalysis/">Analysis</a>
+                    <a href="/speakstracker/speaksanalysis/static/">Static</a>
+                    <a href="/speakstracker/speaksanalysis/dynamic/">Dynamic</a>
                     <a href="/speakstracker/logout">Log out</a>
                 {% else %}
                     <a href="/speakstracker/login">Log in</a>
