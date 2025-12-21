@@ -17,7 +17,6 @@ import dotenv
 # Add .env variables anywhere before SECRET_KEY
 
 # UPDATE secret key
-#print(os.environ['SECRET_KEY'])
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -99,31 +98,6 @@ DATABASES = {
     }
 }
 
-# #region agent log
-import json
-import time
-log_path = os.path.join(BASE_DIR, '.cursor', 'debug.log')
-try:
-    with open(log_path, 'a') as f:
-        f.write(json.dumps({
-            'id': f'log_{int(time.time() * 1000)}_settings',
-            'timestamp': int(time.time() * 1000),
-            'location': 'settings.py:98',
-            'message': 'Database configuration loaded',
-            'data': {
-                'database_name': os.environ.get('DATABASE_NAME', 'NOT_SET'),
-                'database_user': os.environ.get('DATABASE_USER', 'NOT_SET'),
-                'database_host': 'localhost',
-                'database_port': '',
-                'engine': 'django.db.backends.postgresql_psycopg2'
-            },
-            'sessionId': 'debug-session',
-            'runId': 'run1',
-            'hypothesisId': 'D'
-        }) + '\n')
-except Exception:
-    pass
-# #endregion
 
 """
 DATABASES = {
