@@ -339,6 +339,41 @@ header .dropdown a:hover {
     background-color: #ededed;
 }
 
+/* Table sorting styles */
+.wide-speaks-table th.sortable {
+    position: relative;
+    padding-right: 20px;
+}
+
+.wide-speaks-table th.sortable:hover {
+    background-color: #f5f5f5;
+}
+
+.wide-speaks-table th.sortable::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0.3;
+}
+
+.wide-speaks-table th.sortable.sort-asc::after {
+    border-bottom: 6px solid #333;
+    border-top: none;
+    opacity: 1;
+}
+
+.wide-speaks-table th.sortable.sort-desc::after {
+    border-top: 6px solid #333;
+    border-bottom: none;
+    opacity: 1;
+}
+
 .graph-box-scatter {
     width: 50%;
     float: left;

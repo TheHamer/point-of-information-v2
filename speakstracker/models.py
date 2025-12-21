@@ -2,6 +2,7 @@ import json
 from django.db import models
 from django.contrib.auth.models import User
 from django.core.validators import MaxValueValidator, MinValueValidator
+from django.core.exceptions import ValidationError
 
 
 class Speaks(models.Model):
@@ -105,6 +106,53 @@ class Speaks(models.Model):
         
         # If we don't have the full call (4 teams), return None
         return None
+    
+    def clean(self):
+        """
+        Validate that speaker position matches team position and points align with call.
+        Note: This validation is primarily handled in the form for better user experience.
+        This method is kept for programmatic saves that bypass the form.
+        """
+        # Validation 1: Speaker position must match team position
+        if self.team_position and self.speaker_position:
+            # Mapping of team positions to valid speaker positions
+            team_to_speaker_map = {
+                'OG': ['PM', 'DPM'],
+                'OO': ['LO', 'DLO'],
+                'CG': ['MG', 'GW'],
+                'CO': ['MO', 'OW']
+            }
+            
+            valid_speaker_positions = team_to_speaker_map.get(self.team_position, [])
+            if self.speaker_position not in valid_speaker_positions:
+                raise ValidationError({
+                    'speaker_position': f"Speaker position '{self.speaker_position}' is not valid for team position '{self.team_position}'. "
+                                     f"Valid positions for {self.team_position} are: {', '.join(valid_speaker_positions)}."
+                })
+        
+        # Validation 2: Points must align with call
+        if self.team_position and self.team_points is not None:
+            opponent_positions = self.get_opponent_positions_list()
+            
+            # Only validate if we have a full call (4 teams)
+            if isinstance(opponent_positions, list) and len(opponent_positions) == 4:
+                if self.team_position not in opponent_positions:
+                    # Team position not in call - this is handled by form validation
+                    return
+                
+                # Find the position of the team in the call (0 = 1st, 1 = 2nd, 2 = 3rd, 3 = 4th)
+                team_index = opponent_positions.index(self.team_position)
+                # Map index to expected points: 0->3, 1->2, 2->1, 3->0
+                expected_points = 3 - team_index
+                
+                if self.team_points != expected_points:
+                    rank_names = ['1st', '2nd', '3rd', '4th']
+                    call_str = ' '.join(opponent_positions)
+                    raise ValidationError({
+                        'team_points': f"Team points ({self.team_points}) do not match your position in the call. "
+                                     f"You are {rank_names[team_index]} place (call: {call_str}), "
+                                     f"so you should have {expected_points} points."
+                    })
     
     class Meta:
         verbose_name_plural = "Speaks"

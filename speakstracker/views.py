@@ -280,9 +280,7 @@ def enterspeaks(request):
             form_instance = form.save()
             request.user.speaks.add(form_instance)
             messages.success(request, "Round added to tracker", extra_tags='round')
-
-        else:
-            messages.error(request, "Failed to add round to tracker", extra_tags='round')
+        # Form errors will be displayed in the template, no need for generic error message
 
     else:
         form = EnterSpeaks()
@@ -428,12 +426,21 @@ def speaksanalysis_static(request):
     date_not_null = speaks_data.exclude(date__isnull=True)
     dates = list(date_not_null.values_list('date', flat=True))
     speaks_scores = list(date_not_null.values_list('speaker_score', flat=True))
+    rounds = list(date_not_null.values_list('round', flat=True))
+    speaker_positions = list(date_not_null.values_list('speaker_position', flat=True))
+    tournaments = list(date_not_null.values_list('tournament', flat=True))
 
     if dates:
         speaks_vs_time = []
 
-        for date, score in zip(dates, speaks_scores):
-            speaks_vs_time.append({"x": date, "y": score})
+        for date, score, round_num, speaker_pos, tournament in zip(dates, speaks_scores, rounds, speaker_positions, tournaments):
+            speaks_vs_time.append({
+                "x": date, 
+                "y": score,
+                "round": round_num,
+                "speaker_position": speaker_pos,
+                "tournament": tournament
+            })
     else:
         speaks_vs_time = None
 
@@ -486,11 +493,20 @@ def speaksanalysis_dynamic(request):
     date_not_null = speaks_data.exclude(date__isnull=True)
     dates = list(date_not_null.values_list('date', flat=True))
     speaks_scores = list(date_not_null.values_list('speaker_score', flat=True))
+    rounds = list(date_not_null.values_list('round', flat=True))
+    speaker_positions = list(date_not_null.values_list('speaker_position', flat=True))
+    tournaments = list(date_not_null.values_list('tournament', flat=True))
 
     if dates:
         speaks_vs_time = []
-        for date, score in zip(dates, speaks_scores):
-            speaks_vs_time.append({"x": date, "y": score})
+        for date, score, round_num, speaker_pos, tournament in zip(dates, speaks_scores, rounds, speaker_positions, tournaments):
+            speaks_vs_time.append({
+                "x": date, 
+                "y": score,
+                "round": round_num,
+                "speaker_position": speaker_pos,
+                "tournament": tournament
+            })
     else:
         speaks_vs_time = None
 
@@ -648,7 +664,10 @@ def filtered_analysis_data(request):
         if entry.get('date') and entry.get('speaker_score'):
             speaks_vs_time.append({
                 "x": entry['date'].isoformat() if hasattr(entry['date'], 'isoformat') else str(entry['date']),
-                "y": entry['speaker_score']
+                "y": entry['speaker_score'],
+                "round": entry.get('round'),
+                "speaker_position": entry.get('speaker_position'),
+                "tournament": entry.get('tournament')
             })
     
     return JsonResponse({

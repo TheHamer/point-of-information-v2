@@ -428,6 +428,29 @@ const smallSpeaksGraph = function() {
     plugins: {
       legend: {
         display: false,
+      },
+      tooltip: {
+        callbacks: {
+          title: function(context) {
+            // Format title to show tournament and date
+            const tournament = context[0].raw?.tournament ?? '';
+            const date = new Date(context[0].parsed.x);
+            const dateStr = date.toLocaleDateString('en-US', { 
+              year: 'numeric', 
+              month: 'short', 
+              day: 'numeric' 
+            });
+            return tournament ? `${tournament} ${dateStr}` : dateStr;
+          },
+          label: function(context) {
+            // Format label to show round, speaker position, and speaker score
+            const round = context.raw?.round;
+            const roundStr = round != null ? `R${round}` : 'N/A';
+            const speakerPosition = context.raw?.speaker_position ?? 'N/A';
+            const score = context.parsed.y;
+            return `speaks: (${roundStr}, ${speakerPosition}, ${score})`;
+          }
+        }
       }
     },
     scales: {
@@ -699,7 +722,10 @@ const smallSpeaksGraph = function() {
       .filter(entry => entry.date && entry.speaker_score)
       .map(entry => ({
         x: entry.date,
-        y: entry.speaker_score
+        y: entry.speaker_score,
+        round: entry.round,
+        speaker_position: entry.speaker_position,
+        tournament: entry.tournament
       }));
 
     // Update main chart

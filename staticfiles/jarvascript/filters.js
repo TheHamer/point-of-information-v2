@@ -13,6 +13,7 @@ const FilterState = (function() {
     teamPositions: [],      // OG, OO, CG, CO
     speakerPositions: [],   // PM, DPM, LO, DLO, MG, GW, MO, OW
     partners: [],
+    motionTypes: [],        // Motion type filter
     avgPointsRange: [0, 3], // Average points range [min, max]
     dateRange: [null, null] // [startDate, endDate]
   };
@@ -72,6 +73,13 @@ const FilterState = (function() {
     // Partner filter
     if (state.partners.length > 0) {
       if (!entry.partner || !state.partners.includes(entry.partner)) {
+        return false;
+      }
+    }
+    
+    // Motion type filter
+    if (state.motionTypes.length > 0) {
+      if (!entry.motion_type || !state.motionTypes.includes(entry.motion_type)) {
         return false;
       }
     }
@@ -200,6 +208,28 @@ const FilterState = (function() {
   }
   
   /**
+   * Update motion type filter
+   */
+  function setMotionTypes(motionTypes) {
+    state.motionTypes = Array.isArray(motionTypes) ? [...motionTypes] : [];
+    notifyCallbacks();
+  }
+  
+  /**
+   * Toggle a motion type in the filter
+   */
+  function toggleMotionType(motionType) {
+    const index = state.motionTypes.indexOf(motionType);
+    if (index > -1) {
+      state.motionTypes.splice(index, 1);
+    } else {
+      state.motionTypes.push(motionType);
+    }
+    notifyCallbacks();
+    return state.motionTypes.includes(motionType);
+  }
+  
+  /**
    * Update average points range
    */
   function setAvgPointsRange(min, max) {
@@ -226,6 +256,7 @@ const FilterState = (function() {
       teamPositions: [],
       speakerPositions: [],
       partners: [],
+      motionTypes: [],
       avgPointsRange: [0, 3],
       dateRange: [null, null]
     };
@@ -247,6 +278,7 @@ const FilterState = (function() {
       state.teamPositions.length > 0 ||
       state.speakerPositions.length > 0 ||
       state.partners.length > 0 ||
+      state.motionTypes.length > 0 ||
       state.avgPointsRange[0] > 0 ||
       state.avgPointsRange[1] < 3 ||
       state.dateRange[0] !== null ||
@@ -263,6 +295,7 @@ const FilterState = (function() {
     const teamPositions = new Set();
     const speakerPositions = new Set();
     const partners = new Set();
+    const motionTypes = new Set();
     const dates = [];
     let maxRoomPoints = 0;
     
@@ -270,6 +303,7 @@ const FilterState = (function() {
       if (entry.team_position) teamPositions.add(entry.team_position);
       if (entry.speaker_position) speakerPositions.add(entry.speaker_position);
       if (entry.partner) partners.add(entry.partner);
+      if (entry.motion_type) motionTypes.add(entry.motion_type);
       if (entry.date) dates.push(new Date(entry.date));
       if (entry.room_points !== null) {
         maxRoomPoints = Math.max(maxRoomPoints, entry.room_points);
@@ -279,10 +313,25 @@ const FilterState = (function() {
     // Sort dates
     dates.sort((a, b) => a - b);
     
+    // Custom sort order for team positions: OG, OO, CG, CO
+    const teamPositionOrder = ['OG', 'OO', 'CG', 'CO'];
+    const sortedTeamPositions = Array.from(teamPositions).sort((a, b) => {
+      const indexA = teamPositionOrder.indexOf(a);
+      const indexB = teamPositionOrder.indexOf(b);
+      // If both are in the order list, sort by their index
+      if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+      // If only one is in the list, prioritize it
+      if (indexA !== -1) return -1;
+      if (indexB !== -1) return 1;
+      // If neither is in the list, sort alphabetically
+      return a.localeCompare(b);
+    });
+    
     return {
-      teamPositions: Array.from(teamPositions).sort(),
+      teamPositions: sortedTeamPositions,
       speakerPositions: Array.from(speakerPositions),
       partners: Array.from(partners).sort(),
+      motionTypes: Array.from(motionTypes).sort(),
       dateRange: {
         min: dates.length > 0 ? dates[0].toISOString().split('T')[0] : null,
         max: dates.length > 0 ? dates[dates.length - 1].toISOString().split('T')[0] : null
@@ -312,6 +361,10 @@ const FilterState = (function() {
     setPartners,
     togglePartner,
     
+    // Motion type
+    setMotionTypes,
+    toggleMotionType,
+    
     // Ranges
     setAvgPointsRange,
     setDateRange,
@@ -337,6 +390,7 @@ const FilterUI = (function() {
     initTeamPositionButtons();
     initSpeakerPositionButtons();
     initPartnerSelect();
+    initMotionTypeSelect();
     initDateRangeSlider();
     initAvgPointsRangeSlider();
     initClearButton();
@@ -432,6 +486,40 @@ const FilterUI = (function() {
     select.addEventListener('change', () => {
       const selected = Array.from(select.selectedOptions).map(opt => opt.value);
       FilterState.setPartners(selected);
+    });
+    
+    container.appendChild(select);
+  }
+  
+  /**
+   * Initialize motion type multi-select
+   */
+  function initMotionTypeSelect() {
+    const container = document.getElementById('motion-type-filters');
+    if (!container) return;
+    
+    const options = FilterState.getFilterOptions();
+    
+    if (options.motionTypes.length === 0) {
+      container.innerHTML = '<span class="no-data">No motion type data</span>';
+      return;
+    }
+    
+    const select = document.createElement('select');
+    select.id = 'motion-type-select';
+    select.multiple = true;
+    select.className = 'filter-select';
+    
+    options.motionTypes.forEach(motionType => {
+      const option = document.createElement('option');
+      option.value = motionType;
+      option.textContent = motionType;
+      select.appendChild(option);
+    });
+    
+    select.addEventListener('change', () => {
+      const selected = Array.from(select.selectedOptions).map(opt => opt.value);
+      FilterState.setMotionTypes(selected);
     });
     
     container.appendChild(select);
@@ -551,6 +639,11 @@ const FilterUI = (function() {
       const partnerSelect = document.getElementById('partner-select');
       if (partnerSelect) {
         Array.from(partnerSelect.options).forEach(opt => opt.selected = false);
+      }
+      
+      const motionTypeSelect = document.getElementById('motion-type-select');
+      if (motionTypeSelect) {
+        Array.from(motionTypeSelect.options).forEach(opt => opt.selected = false);
       }
       
       const dateStart = document.getElementById('date-start');

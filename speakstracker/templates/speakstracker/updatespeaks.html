@@ -12,9 +12,25 @@
 
     <form method="POST">
         {% csrf_token %}
+        
+        {% if form.non_field_errors %}
+            <div style="color: red; margin-bottom: 15px;">
+                {% for error in form.non_field_errors %}
+                    <div>{{ error }}</div>
+                {% endfor %}
+            </div>
+        {% endif %}
+        
         {% for field in form %}
             <div class="enter-speaks-label">{{field.label}}</div>
             <div>{{field}}</div>
+            {% if field.errors %}
+                <div style="color: red; font-size: 0.9em; margin-bottom: 10px;">
+                    {% for error in field.errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
             {% if field.help_text and field.name == 'opponent_positions' %}
                 <div class="enter-speaks-help-text">{{field.help_text}}</div>
             {% endif %}
