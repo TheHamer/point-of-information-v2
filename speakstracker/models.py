@@ -52,24 +52,24 @@ class Speaks(models.Model):
     speaker_score = models.PositiveIntegerField(null=True, validators=[MinValueValidator(50), MaxValueValidator(100)])
     include = models.BooleanField(default=True)
     
-    # Opponent positions in the same room (stored as JSON list: ["OO", "CG", "CO"])
-    opponent_positions = models.TextField(null=True, blank=True, help_text="JSON list of opponent team positions")
+    # Full call (all 4 teams in rank order, stored as JSON list: ["OO", "OG", "CO", "CG"])
+    call = models.TextField(null=True, blank=True, help_text="JSON list of all 4 teams in rank order (1st to 4th)")
     
-    def get_opponent_positions_list(self):
-        """Get opponent positions as a Python list."""
-        if not self.opponent_positions:
+    def get_call_list(self):
+        """Get the full call as a Python list."""
+        if not self.call:
             return []
         try:
-            return json.loads(self.opponent_positions)
+            return json.loads(self.call)
         except (json.JSONDecodeError, TypeError):
             return []
     
-    def set_opponent_positions_list(self, positions):
-        """Set opponent positions from a Python list."""
+    def set_call_list(self, positions):
+        """Set the full call from a Python list."""
         if positions:
-            self.opponent_positions = json.dumps(positions)
+            self.call = json.dumps(positions)
         else:
-            self.opponent_positions = None
+            self.call = None
     
     @property
     def average_points_so_far(self):
@@ -93,17 +93,14 @@ class Speaks(models.Model):
     
     def get_call(self):
         """
-        Get the call (team ranking) formatted as "[team 1]>[team 2]>[team 3]>[team 4]".
+        Get the call (team ranking) formatted as "[team 1] [team 2] [team 3] [team 4]".
         The furthest left team is first place.
         """
-        if self.team_position is None or self.team_points is None:
-            return None
+        call_list = self.get_call_list()
         
-        opponent_positions = self.get_opponent_positions_list()
-        
-        # opponent_positions should contain the full call (4 teams in rank order)
-        if len(opponent_positions) == 4:
-            return " ".join(opponent_positions)
+        # call should contain the full call (4 teams in rank order)
+        if len(call_list) == 4:
+            return " ".join(call_list)
         
         # If we don't have the full call (4 teams), return None
         return None
@@ -133,22 +130,22 @@ class Speaks(models.Model):
         
         # Validation 2: Points must align with call
         if self.team_position and self.team_points is not None:
-            opponent_positions = self.get_opponent_positions_list()
+            call_list = self.get_call_list()
             
             # Only validate if we have a full call (4 teams)
-            if isinstance(opponent_positions, list) and len(opponent_positions) == 4:
-                if self.team_position not in opponent_positions:
+            if isinstance(call_list, list) and len(call_list) == 4:
+                if self.team_position not in call_list:
                     # Team position not in call - this is handled by form validation
                     return
                 
                 # Find the position of the team in the call (0 = 1st, 1 = 2nd, 2 = 3rd, 3 = 4th)
-                team_index = opponent_positions.index(self.team_position)
+                team_index = call_list.index(self.team_position)
                 # Map index to expected points: 0->3, 1->2, 2->1, 3->0
                 expected_points = 3 - team_index
                 
                 if self.team_points != expected_points:
                     rank_names = ['1st', '2nd', '3rd', '4th']
-                    call_str = ' '.join(opponent_positions)
+                    call_str = ' '.join(call_list)
                     raise ValidationError({
                         'team_points': f"Team points ({self.team_points}) do not match your position in the call. "
                                      f"You are {rank_names[team_index]} place (call: {call_str}), "

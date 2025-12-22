@@ -114,58 +114,6 @@ class EnterSpeaks(ModelForm):
         if not full_call:
             return None
         
-        # Check if it's already JSON (for backwards compatibility with old data)
-        try:
-            parsed = json.loads(full_call)
-            if isinstance(parsed, list):
-                # Validate the JSON format also
-                positions = [pos.strip().upper() if isinstance(pos, str) else str(pos).strip().upper() 
-                           for pos in parsed if pos]
-                
-                # Validate we have exactly 4 teams
-                if len(positions) != 4:
-                    raise forms.ValidationError(
-                        f"Full call must contain exactly 4 teams (1st, 2nd, 3rd, 4th). "
-                        f"You entered {len(positions)} team(s)."
-                    )
-                
-                # Validate positions are valid team positions
-                valid_positions = ['OG', 'OO', 'CG', 'CO']
-                invalid_positions = [pos for pos in positions if pos not in valid_positions]
-                
-                if invalid_positions:
-                    raise forms.ValidationError(
-                        f"Invalid team positions: {', '.join(invalid_positions)}. "
-                        f"Valid positions are: {', '.join(valid_positions)}"
-                    )
-                
-                # Check for duplicates
-                if len(positions) != len(set(positions)):
-                    raise forms.ValidationError(
-                        "Full call contains duplicate team positions. Each team should appear exactly once."
-                    )
-                
-                # Verify all 4 required teams are present exactly once
-                positions_set = set(positions)
-                required_teams = set(valid_positions)
-                if positions_set != required_teams:
-                    missing_teams = required_teams - positions_set
-                    extra_teams = positions_set - required_teams
-                    error_parts = []
-                    if missing_teams:
-                        error_parts.append(f"Missing teams: {', '.join(sorted(missing_teams))}")
-                    if extra_teams:
-                        error_parts.append(f"Invalid teams: {', '.join(sorted(extra_teams))}")
-                    raise forms.ValidationError(
-                        f"Full call must contain exactly one of each team (OG, OO, CG, CO). "
-                        f"{' '.join(error_parts)}"
-                    )
-                
-                # Return validated JSON
-                return json.dumps(positions)
-        except (json.JSONDecodeError, TypeError):
-            pass
-        
         # Parse space-separated full call
         positions = [pos.strip().upper() for pos in full_call.split() if pos.strip()]
         
@@ -243,9 +191,10 @@ class EnterSpeaks(ModelForm):
         # Parse the full call
         try:
             full_call = json.loads(full_call_json)
-        except (json.JSONDecodeError, TypeError):
-            # If it's not valid JSON, it might be old format - leave as is
-            return cleaned_data
+        except (json.JSONDecodeError, TypeError) as e:
+            raise forms.ValidationError({
+                'opponent_positions': f"Invalid format: {str(e)}"
+            })
         
         # If we have a full call (4 teams) and a team_position, validate and store the full call
         if isinstance(full_call, list) and len(full_call) == 4 and team_position:
