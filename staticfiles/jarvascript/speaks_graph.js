@@ -21,12 +21,12 @@ const positionSpeaks = (function(){
   }
 
   function getMinandMax(speaks) {
-    const speaksNozero = [...speaks.speaks];
+    // Filter out zeros properly (avoiding splice bug during iteration)
+    const speaksNozero = speaks.speaks.filter(val => val !== 0);
 
-    for (var i = 0; i < speaksNozero.length; i++) {
-      if (speaksNozero[i] === 0) {
-        speaksNozero.splice(i, 1);
-      }
+    // If all values are zero or array is empty, return default range
+    if (speaksNozero.length === 0) {
+      return {"max": 85, "min": 0};
     }
 
     const max = Math.max(...speaksNozero);

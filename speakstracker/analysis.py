@@ -65,9 +65,30 @@ class speaks_analysis:
         for group in groups:
             pos1_data = position_avg[group[1]]
             pos2_data = position_avg[group[2]]
-            for i in range(1, 4):
-                value = (pos1_data[i] + pos2_data[i]) / 2 if pos1_data[i] and pos2_data[i] else (pos1_data[i] + pos2_data[i])
-                grouped_positions[group[0]].append(round(value, 2))
+            
+            # Count should be summed, not averaged
+            count1 = pos1_data[1] or 0
+            count2 = pos2_data[1] or 0
+            total_count = count1 + count2
+            grouped_positions[group[0]].append(round(total_count, 2))
+            
+            # Calculate weighted averages for speak_avg and point_avg
+            if total_count > 0:
+                # Weighted average for speak_avg
+                speak_avg1 = pos1_data[2] or 0
+                speak_avg2 = pos2_data[2] or 0
+                weighted_speak_avg = (speak_avg1 * count1 + speak_avg2 * count2) / total_count
+                grouped_positions[group[0]].append(round(weighted_speak_avg, 2))
+                
+                # Weighted average for point_avg
+                point_avg1 = pos1_data[3] or 0
+                point_avg2 = pos2_data[3] or 0
+                weighted_point_avg = (point_avg1 * count1 + point_avg2 * count2) / total_count
+                grouped_positions[group[0]].append(round(weighted_point_avg, 2))
+            else:
+                # If no data, set to 0
+                grouped_positions[group[0]].append(0)
+                grouped_positions[group[0]].append(0)
 
         return position_avg, grouped_positions,
 
