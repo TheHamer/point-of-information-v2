@@ -74,7 +74,7 @@ class EnterSpeaks(ModelForm):
             'tournament_url': 'Tournament URL',
             'team_points': 'Team points*', 
             'speaker_score': 'Speaker score*',
-            'opponent_positions': 'Full call'
+            'call': 'Full call'
         }
         widgets = {
             'date': forms.DateInput(attrs={'class': 'enter-speaks-field', 'type': 'date'}),
@@ -90,13 +90,13 @@ class EnterSpeaks(ModelForm):
             'team_points': forms.Select(attrs={'class': 'enter-speaks-select'}),
             'motion': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
             'info_slide': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
-            'opponent_positions': forms.TextInput(attrs={
+            'call': forms.TextInput(attrs={
                 'class': 'enter-speaks-field',
                 'placeholder': 'e.g., OO OG CO CG'
             }),
         }
         help_texts = {
-            'opponent_positions': 'Enter call separated by spaces (e.g., OO OG CO CG)',
+            'call': 'Enter call separated by spaces (e.g., OO OG CO CG)',
         }
 
     def __init__(self, *args, **kwargs):
@@ -105,11 +105,11 @@ class EnterSpeaks(ModelForm):
         if self.instance and self.instance.pk:
             call = self.instance.get_call()
             if call:
-                self.initial['opponent_positions'] = call
+                self.initial['call'] = call
 
-    def clean_opponent_positions(self):
+    def clean_call(self):
         """Parse full call input and validate it contains exactly 4 teams."""
-        full_call = self.cleaned_data.get('opponent_positions', '').strip()
+        full_call = self.cleaned_data.get('call', '').strip()
         
         if not full_call:
             return None
@@ -163,7 +163,7 @@ class EnterSpeaks(ModelForm):
     def clean(self):
         """Extract opponent positions from full call after validating team_position."""
         cleaned_data = super().clean()
-        full_call_json = cleaned_data.get('opponent_positions')
+        full_call_json = cleaned_data.get('call')
         team_position = cleaned_data.get('team_position')
         speaker_position = cleaned_data.get('speaker_position')
         team_points = cleaned_data.get('team_points')
@@ -193,7 +193,7 @@ class EnterSpeaks(ModelForm):
             full_call = json.loads(full_call_json)
         except (json.JSONDecodeError, TypeError) as e:
             raise forms.ValidationError({
-                'opponent_positions': f"Invalid format: {str(e)}"
+                'call': f"Invalid format: {str(e)}"
             })
         
         # If we have a full call (4 teams) and a team_position, validate and store the full call
@@ -201,7 +201,7 @@ class EnterSpeaks(ModelForm):
             # Validate that user's team is in the full call
             if team_position not in full_call:
                 raise forms.ValidationError({
-                    'opponent_positions': f"Your team position ({team_position}) must be included in the full call."
+                    'call': f"Your team position ({team_position}) must be included in the full call."
                 })
             
             # Validation 2: Points must align with call
@@ -220,7 +220,7 @@ class EnterSpeaks(ModelForm):
                     })
             
             # Store the full call (all 4 teams in rank order) - get_call() will use it directly
-            cleaned_data['opponent_positions'] = json.dumps(full_call)
+            cleaned_data['call'] = json.dumps(full_call)
         
         return cleaned_data
     

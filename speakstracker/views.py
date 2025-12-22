@@ -205,11 +205,11 @@ def _save_tournament_data(request, tab_data: dict, comp_date, tournament_name: s
                 speaks.motion = tab_data["motions"][round_key].get("motion")
                 speaks.info_slide = tab_data["motions"][round_key].get("info_slide")
             
-            # Opponent positions (if available) - serialize to JSON
+            # Full call (if available) - serialize to JSON
             if round_key in tab_data.get("opponent_positions", {}):
                 opponent_pos = tab_data["opponent_positions"][round_key]
                 if opponent_pos:
-                    speaks.opponent_positions = json.dumps(opponent_pos)
+                    speaks.call = json.dumps(opponent_pos)
             
             speaks.save()
             request.user.speaks.add(speaks)
@@ -318,7 +318,6 @@ def speakstable(request):
             'motion': speaks.motion,
             'info_slide': speaks.info_slide,
             'include': speaks.include,
-            'opponent_positions': speaks.opponent_positions,
             'call': speaks.get_call(),
         }
         speaks_data.append(speaks_dict)

@@ -269,9 +269,9 @@ class speaks_analysis:
             
             # Get full call from stored data (4 positions in rank order: 1st to 4th)
             full_call = []
-            if entry.opponent_positions:
+            if entry.call:
                 try:
-                    full_call = json.loads(entry.opponent_positions)
+                    full_call = json.loads(entry.call)
                 except (json.JSONDecodeError, TypeError):
                     pass
             

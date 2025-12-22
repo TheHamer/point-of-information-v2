@@ -151,6 +151,3 @@ class Speaks(models.Model):
                                      f"You are {rank_names[team_index]} place (call: {call_str}), "
                                      f"so you should have {expected_points} points."
                     })
-    
-    class Meta:
-        verbose_name_plural = "Speaks"

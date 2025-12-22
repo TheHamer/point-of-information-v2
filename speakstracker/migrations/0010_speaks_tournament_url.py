@@ -6,7 +6,7 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('speakstracker', '0009_speaks_opponent_positions'),
+        ('speakstracker', '0009_speaks_call'),
     ]
 
     operations = [
