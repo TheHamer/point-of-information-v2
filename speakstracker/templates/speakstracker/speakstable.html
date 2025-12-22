@@ -39,13 +39,22 @@
             
         {% for speaks in speaks_data %}
         <tr class="data-row">
-            {% for key, value in speaks.items %}
-                {% if key == "date" or key == "partner" or key == "tournament" %}
-                    <td class="wide-speaks-td">{{value}}</td>
-                {% elif not key == "id" and not key == "user_id" and not key == "motion" and not key == "info_slide" and not key == "include" and not key == "call" and not key == "opponent_positions" %}
-                    <td class="narrow-speaks-td">{{value}}</td>
+            <td class="wide-speaks-td" data-sort-value="{{ speaks.date|date:'Y-m-d' }}">{{ speaks.date }}</td>
+            <td class="wide-speaks-td" data-sort-value="{{ speaks.tournament }}">
+                {% if speaks.tournament_url %}
+                    <a href="{{ speaks.tournament_url }}" target="_blank" rel="noopener noreferrer">{{ speaks.tournament }}</a>
+                {% else %}
+                    {{ speaks.tournament }}
                 {% endif %}
-            {% endfor %}
+            </td>
+            <td class="wide-speaks-td">{{ speaks.partner }}</td>
+            <td class="narrow-speaks-td">{{ speaks.round }}</td>
+            <td class="narrow-speaks-td">{{ speaks.room_points }}</td>
+            <td class="narrow-speaks-td">{{ speaks.team_position }}</td>
+            <td class="narrow-speaks-td">{{ speaks.speaker_position }}</td>
+            <td class="narrow-speaks-td">{{ speaks.motion_type }}</td>
+            <td class="narrow-speaks-td">{{ speaks.team_points }}</td>
+            <td class="narrow-speaks-td">{{ speaks.speaker_score }}</td>
 
             <td class="narrow-speaks-td">
                 {% if speaks.motion or speaks.info_slide %}

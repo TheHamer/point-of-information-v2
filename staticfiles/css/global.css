@@ -571,7 +571,7 @@ header .dropdown a:hover {
 .update-speaks-box {
     width: 90%;
     max-width: 350px;
-    height: 865.0px;
+    min-height: 865.0px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -691,7 +691,7 @@ header .dropdown a:hover {
 .login-box {
     width: 90%;
     max-width: 350px;
-    height: 320px;
+    min-height: 320px;
     margin-top: 100px;
     margin-left: auto;
     margin-right: auto;
@@ -750,7 +750,7 @@ header .dropdown a:hover {
 .register-box {
     width: 90%;
     max-width: 350px;
-    height: 500px;
+    min-height: 500px;
     margin-top: 100px;
     margin-bottom: 20px;
     margin-left: auto;
@@ -814,7 +814,7 @@ header .dropdown a:hover {
 .update-user-box {
     width: 90%;
     max-width: 350px;
-    height: 365px;
+    min-height: 365px;
     margin-top: 100px;
     margin-left: auto;
     margin-right: auto;
@@ -893,7 +893,7 @@ select.enter-speaks-select option {
 }
 
 .enter-message {
-    margin-top: 10px;
+    margin-top: 2px;
     color: #BF40BF;
 }
 
@@ -904,9 +904,13 @@ select.enter-speaks-select option {
     z-index: 2;
     clear: both;
     display: block;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    margin-top: 0px;
+    margin-bottom: 0px;
     padding: 0;
+}
+
+.register-message p {
+    margin: 0;
 }
 
 .enter-url-box form .login-button,

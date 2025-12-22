@@ -24,27 +24,29 @@
     /**
      * Parse cell value for sorting
      */
-    function parseCellValue(cell, customSortOrder = null) {
-        const text = cell.textContent.trim();
+    function parseCellValue(cell, customSortOrder = null, forceStringSort = false) {
+        // Check for data-sort-value attribute first (for cells with HTML that should sort by specific value)
+        const sortValue = cell.getAttribute('data-sort-value');
+        const text = sortValue ? sortValue.trim() : cell.textContent.trim();
+        
+        // If forced to string sort (e.g., for Comp column), return immediately
+        if (forceStringSort) {
+            return text.toLowerCase();
+        }
         
         // If custom sort order is provided, use it
         if (customSortOrder) {
             return getPositionSortIndex(text, customSortOrder);
         }
         
-        // Try parsing as number
+        // Try parsing as number (only if it's a pure number, not mixed with text)
         const num = parseFloat(text);
-        if (!isNaN(num) && text !== '') {
+        if (!isNaN(num) && text !== '' && /^-?\d*\.?\d+$/.test(text.trim())) {
             return num;
         }
         
-        // Try parsing as date
-        const date = new Date(text);
-        if (!isNaN(date.getTime())) {
-            return date.getTime();
-        }
-        
         // Return as lowercase string for text comparison
+        // Note: Date column uses data-sort-value with ISO format (YYYY-MM-DD) which sorts correctly as string
         return text.toLowerCase();
     }
 
@@ -84,6 +86,10 @@
         const headerText = currentHeader ? currentHeader.textContent.trim() : '';
         const customSortOrder = getCustomSortOrder(headerText);
         
+        // Force string sorting for Comp column to ensure alphabetical sorting
+        const headerTextLower = headerText.toLowerCase();
+        const forceStringSort = headerTextLower === 'comp';
+        
         // Sort rows
         rows.sort((a, b) => {
             const aCell = a.cells[columnIndex];
@@ -91,8 +97,8 @@
             
             if (!aCell || !bCell) return 0;
             
-            const aValue = parseCellValue(aCell, customSortOrder);
-            const bValue = parseCellValue(bCell, customSortOrder);
+            const aValue = parseCellValue(aCell, customSortOrder, forceStringSort);
+            const bValue = parseCellValue(bCell, customSortOrder, forceStringSort);
             
             if (aValue < bValue) return ascending ? -1 : 1;
             if (aValue > bValue) return ascending ? 1 : -1;

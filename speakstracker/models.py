@@ -39,6 +39,7 @@ class Speaks(models.Model):
     user = models.ForeignKey(User, null=True, on_delete=models.CASCADE, related_name="speaks")
     date = models.DateField(null=True, blank=True)
     tournament = models.CharField(max_length=50, null=True)
+    tournament_url = models.URLField(max_length=500, null=True, blank=True, help_text="URL of the competition homepage if imported from a link")
     partner = models.CharField(max_length=50, null=True, blank=True)
     round = models.PositiveIntegerField(null=True, blank=True)
     room_points = models.PositiveIntegerField(null=True, blank=True)

@@ -158,9 +158,16 @@ def _fetch_data_from_scraper(url: str, name: str) -> dict:
     return scraper.get_person(name)
 
 
-def _save_tournament_data(request, tab_data: dict, comp_date, tournament_name: str) -> int:
+def _save_tournament_data(request, tab_data: dict, comp_date, tournament_name: str, tournament_url: str = None) -> int:
     """
     Save tournament data to the database.
+    
+    Args:
+        request: The HTTP request object
+        tab_data: Dictionary containing tournament data
+        comp_date: Competition date
+        tournament_name: Name of the tournament
+        tournament_url: URL of the competition homepage (optional)
     
     Returns:
         Number of rounds successfully saved.
@@ -175,6 +182,7 @@ def _save_tournament_data(request, tab_data: dict, comp_date, tournament_name: s
             speaks = Speaks()
             speaks.date = comp_date
             speaks.tournament = tournament_name
+            speaks.tournament_url = tournament_url
             speaks.round = round_no
             speaks.partner = tab_data.get("partner")
             speaks.room_points = total_points
@@ -233,26 +241,22 @@ def enterspeaks(request):
             speaker_name = URL_form.cleaned_data["name"]
             comp_date = URL_form.cleaned_data["date"]
             tournament_name = URL_form.cleaned_data["tournament"]
-            data_source = URL_form.cleaned_data.get("data_source", "api")
             
             try:
-                # Fetch data using selected method
-                if data_source == "api":
-                    try:
-                        tab_data = _fetch_data_from_api(tab_url, speaker_name)
-                    except Exception as api_error:
-                        # Fall back to scraper if API fails
-                        messages.warning(
-                            request, 
-                            f"API failed ({api_error}), falling back to web scraping...", 
-                            extra_tags='url'
-                        )
-                        tab_data = _fetch_data_from_scraper(tab_url, speaker_name)
-                else:
+                # Always try API first, fall back to scraper if it fails
+                try:
+                    tab_data = _fetch_data_from_api(tab_url, speaker_name)
+                except Exception as api_error:
+                    # Fall back to scraper if API fails
+                    messages.warning(
+                        request, 
+                        f"API failed ({api_error}), falling back to web scraping...", 
+                        extra_tags='url'
+                    )
                     tab_data = _fetch_data_from_scraper(tab_url, speaker_name)
                 
                 # Save the data
-                rounds_saved = _save_tournament_data(request, tab_data, comp_date, tournament_name)
+                rounds_saved = _save_tournament_data(request, tab_data, comp_date, tournament_name, tab_url)
                 
                 if rounds_saved > 0:
                     messages.success(
@@ -302,6 +306,7 @@ def speakstable(request):
             'user_id': speaks.user_id,
             'date': speaks.date,
             'tournament': speaks.tournament,
+            'tournament_url': speaks.tournament_url,
             'partner': speaks.partner,
             'round': speaks.round,
             'room_points': speaks.room_points,

@@ -71,6 +71,7 @@ class EnterSpeaks(ModelForm):
         exclude = ["user", "include"]
         labels = {
             'tournament': 'Tournament*', 
+            'tournament_url': 'Tournament URL',
             'team_points': 'Team points*', 
             'speaker_score': 'Speaker score*',
             'opponent_positions': 'Full call'
@@ -78,6 +79,7 @@ class EnterSpeaks(ModelForm):
         widgets = {
             'date': forms.DateInput(attrs={'class': 'enter-speaks-field', 'type': 'date'}),
             'tournament': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
+            'tournament_url': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
             'partner': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
             'motion_type': forms.TextInput(attrs={'class': 'enter-speaks-field'}),
             'round': forms.NumberInput(attrs={'class': 'enter-speaks-field'}),
@@ -299,11 +301,6 @@ class EnterSpeaks(ModelForm):
 class EnterTabURL(forms.Form):
     """Form for importing tournament data from Tabbycat URL or API."""
     
-    DATA_SOURCE_CHOICES = [
-        ('api', 'Use Tabbycat API (recommended)'),
-        ('scraper', 'Use web scraping (legacy)'),
-    ]
-    
     tab_url = forms.CharField(
         label="Tab URL*", 
         max_length=500, 
@@ -323,10 +320,4 @@ class EnterTabURL(forms.Form):
         label="Tournament Name*", 
         max_length=200, 
         widget=forms.TextInput(attrs={'class': 'enter-speaks-field', 'placeholder': 'e.g., EUDC 2024'})
-    )
-    data_source = forms.ChoiceField(
-        label="Data Source",
-        choices=DATA_SOURCE_CHOICES,
-        initial='api',
-        widget=forms.RadioSelect(attrs={'class': 'enter-speaks-radio'})
     )
