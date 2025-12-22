@@ -295,27 +295,7 @@ class speaks_analysis:
                         key = (my_position, opponent_pos)
                         matchups[key]['total'] += 1
                         matchups[key]['wins'] += 1
-            
-            else:
-                # Fallback: If we don't have full call, use points-based estimation
-                # In BP, if I got N points, I beat (N) teams
-                # We distribute wins proportionally across opponent positions
-                opponent_positions = [p for p in self.TEAM_POSITIONS if p != my_position]
-                
-                if not opponent_positions:
-                    continue
-                
-                # Number of teams I beat = my_points
-                teams_i_beat = my_points
-                
-                for opponent_pos in opponent_positions:
-                    key = (my_position, opponent_pos)
-                    matchups[key]['total'] += 1
-                    
-                    # Distribute wins proportionally
-                    if teams_i_beat > 0:
-                        # Each opponent has equal chance of being beaten by me
-                        matchups[key]['wins'] += teams_i_beat / len(opponent_positions)
+            # Skip entries without full calls
         
         # Calculate win percentages
         for (my_pos, opp_pos), data in matchups.items():
