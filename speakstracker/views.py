@@ -655,13 +655,8 @@ def filtered_analysis_data(request):
     motion_avg = speaks_calculate.speaks_per_motion_type()
     avg_points_speaker, avg_points_team, avg_points_best_fit = speaks_calculate.get_average_points_chart_data()
     
-    # Heatmap for specific position
-    primary_position = params.get('primary_position', '')
-    heatmap_data = None
-    if primary_position in ['OG', 'OO', 'CG', 'CO']:
-        heatmap_data = speaks_calculate.get_heatmap_data_for_position(primary_position)
-    else:
-        heatmap_data = speaks_calculate.positional_win_rate_heatmap()
+    # Heatmap data
+    heatmap_data = speaks_calculate.positional_win_rate_heatmap()
     
     # Speaks vs time
     speaks_vs_time = []
@@ -711,10 +706,7 @@ def heatmap_data(request):
     params = request.GET if request.method == 'GET' else request.POST
     primary_position = params.get('primary_position', '')
     
-    if primary_position in ['OG', 'OO', 'CG', 'CO']:
-        data = speaks_calculate.get_heatmap_data_for_position(primary_position)
-    else:
-        data = speaks_calculate.positional_win_rate_heatmap()
+    data = speaks_calculate.positional_win_rate_heatmap()
     
     return JsonResponse({
         "primary_position": primary_position or None,

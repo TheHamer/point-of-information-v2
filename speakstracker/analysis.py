@@ -309,27 +309,6 @@ class speaks_analysis:
         
         return result
     
-    def get_heatmap_data_for_position(self, primary_position):
-        """
-        Get heatmap data when a specific primary position is selected.
-        
-        Args:
-            primary_position: The selected primary position (OG, OO, CG, CO)
-        
-        Returns:
-            Dict with win rates against each opponent position, or None if no data.
-            Shows how often you beat each opponent position when you play the primary position.
-        """
-        if primary_position not in self.TEAM_POSITIONS:
-            return None
-        
-        heatmap = self.positional_win_rate_heatmap()
-        
-        if not heatmap:
-            return None
-        
-        return heatmap.get(primary_position)
-    
     def get_filter_options(self):
         """
         Get available filter options based on the current queryset.
