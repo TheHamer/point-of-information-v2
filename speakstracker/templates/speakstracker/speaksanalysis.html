@@ -33,21 +33,21 @@
 .filter-section {
     background: #1e1e2e;
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     margin-bottom: 24px;
 }
 
 .filter-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     align-items: flex-start;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .filter-group label {
@@ -57,9 +57,17 @@
 }
 
 .filter-btn-group {
-    display: flex;
+    display: grid;
     gap: 4px;
-    flex-wrap: wrap;
+}
+
+#team-position-filters {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+#speaker-position-filters {
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .filter-btn {
@@ -95,6 +103,22 @@
     color: #ccc;
     border-radius: 4px;
     min-width: 150px;
+    height: 32px;
+}
+
+#partner-filters,
+#motion-type-filters,
+#date-range-filters {
+    height: auto;
+    min-height: 0;
+    line-height: 1;
+    display: block;
+}
+
+#partner-filters .filter-select,
+#motion-type-filters .filter-select,
+#date-range-filters .filter-date {
+    display: block;
 }
 
 .filter-date {
@@ -122,6 +146,12 @@
 .no-data {
     color: #888;
     font-style: italic;
+    font-size: 0.85em;
+    line-height: 1;
+    margin: 0;
+    padding: 0;
+    display: block;
+    height: auto;
 }
 
 /* Heatmap Section */

@@ -28,21 +28,21 @@
 .filter-section {
     background: #1e1e2e;
     border-radius: 8px;
-    padding: 16px;
+    padding: 12px;
     margin-bottom: 24px;
 }
 
 .filter-controls {
     display: flex;
     flex-wrap: wrap;
-    gap: 16px;
+    gap: 12px;
     align-items: flex-start;
 }
 
 .filter-group {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 4px;
 }
 
 .filter-group label {
@@ -52,9 +52,17 @@
 }
 
 .filter-btn-group {
-    display: flex;
+    display: grid;
     gap: 4px;
-    flex-wrap: wrap;
+}
+
+#team-position-filters {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+#speaker-position-filters {
+    grid-template-columns: repeat(2, 1fr);
 }
 
 .filter-btn {
@@ -90,6 +98,15 @@
     color: #ccc;
     border-radius: 4px;
     min-width: 150px;
+    min-height: 32px;
+}
+
+#partner-filters,
+#motion-type-filters,
+#date-range-filters {
+    min-height: auto;
+    display: flex;
+    align-items: center;
 }
 
 .filter-date {
@@ -117,6 +134,21 @@
 .no-data {
     color: #888;
     font-style: italic;
+    font-size: 0.85em;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    width: auto;
+    display: inline;
+    justify-content: normal;
+}
+
+#partner-filters .no-data,
+#motion-type-filters .no-data {
+    height: auto;
+    line-height: 1.2;
+    display: inline;
 }
 
 /* Heatmap Section */

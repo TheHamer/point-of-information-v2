@@ -434,7 +434,8 @@ const FilterUI = (function() {
     const container = document.getElementById('speaker-position-filters');
     if (!container) return;
     
-    const positions = ['PM', 'DPM', 'LO', 'DLO', 'MG', 'GW', 'MO', 'OW'];
+    // Order for 2-column grid: PM LO / DPM DLO / MG MO / GW OW
+    const positions = ['PM', 'LO', 'DPM', 'DLO', 'MG', 'MO', 'GW', 'OW'];
     const options = FilterState.getFilterOptions();
     
     positions.forEach(pos => {

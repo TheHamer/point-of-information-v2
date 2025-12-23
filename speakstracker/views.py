@@ -2,6 +2,7 @@ import json
 
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse, JsonResponse
+from django.contrib.auth.forms import UserCreationForm
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.views import PasswordResetConfirmView, PasswordResetCompleteView, PasswordResetView, PasswordResetDoneView, PasswordChangeView, PasswordChangeDoneView
@@ -9,7 +10,7 @@ from django.contrib.auth.decorators import login_required
 from django.db.models import Avg, StdDev, Max, Min
 
 from .forms import CreateUserForm, changeUserDetails, EnterSpeaks, EnterTabURL, PasswordReset, SetPassword, PasswordChange
-from .decorators import unauthenticated_user
+from .decorators import unauthenticated_user, allowed_users
 from .models import Speaks
 from .analysis import speaks_analysis
 from .scraper import PersonDataScraper
@@ -23,19 +24,30 @@ def trakerhome(request):
     speaks_data = Speaks.objects.filter(user=request.user, include=True)
     full_data_list = list(speaks_data.values())
 
-    stats = speaks_data.aggregate(
-        avg=Avg('speaker_score'),
-        std=StdDev('speaker_score'),
-        max=Max('speaker_score'),
-        min=Min('speaker_score')
-    )
-    no_entries = speaks_data.count()
+    if speaks_data:
+        avg = speaks_data.aggregate(Avg('speaker_score'))
+        std = speaks_data.aggregate(StdDev('speaker_score'))
+        max = speaks_data.aggregate(Max('speaker_score'))
+        min = speaks_data.aggregate(Min('speaker_score'))
+        no_entries = speaks_data.count()
+
+        avg_round = round(avg["speaker_score__avg"], 2)
+        std_round = round(std["speaker_score__stddev"], 2)
+        max_value = max["speaker_score__max"]
+        min_value = min["speaker_score__min"]
+
+    else:
+        avg_round = None
+        std_round = None
+        max_value = None
+        min_value = None
+        no_entries = None
 
     context = {
-        "avg": round(stats["avg"], 2) if stats["avg"] is not None else None,
-        "std": round(stats["std"], 2) if stats["std"] is not None else None,
-        "max": stats["max"],
-        "min": stats["min"],
+        "avg": avg_round,
+        "std": std_round,
+        "max": max_value,
+        "min": min_value,
         "no_entries": no_entries,
         "full_data_list": full_data_list
     }
@@ -314,48 +326,58 @@ def speakstable(request):
 
 @login_required(login_url='loginpage')
 def updatespeaks(request, id):
-    entry = get_object_or_404(Speaks, id=id)
+
+    entry = get_object_or_404(Speaks, id = id)
+
+    if request.user == entry.user:
+
+        if request.method == "POST":
+            form = EnterSpeaks(request.POST, instance = entry)
+
+            if form.is_valid():
+                form.save()
+                return redirect("speakstable")
+
+        else:
+            form = EnterSpeaks(instance = entry)
+
+        context = {"form": form}
+        
+        return render(request, 'speakstracker/updatespeaks.html', context)
     
-    if request.user != entry.user:
-        return HttpResponse("<h1>Access denied!</h1>", status=403)
-    
-    if request.method == "POST":
-        form = EnterSpeaks(request.POST, instance=entry)
-        if form.is_valid():
-            form.save()
-            return redirect("speakstable")
     else:
-        form = EnterSpeaks(instance=entry)
-    
-    context = {"form": form}
-    return render(request, 'speakstracker/updatespeaks.html', context)
+        return HttpResponse("<h1>Access denied!</h1>")
 
 @login_required(login_url='loginpage')
 def deletespeaks(request, id):
-    entry = get_object_or_404(Speaks, id=id)
-    
-    if request.user != entry.user:
-        return HttpResponse("<h1>Access denied!</h1>", status=403)
-    
-    if request.method == "POST":
-        entry.delete()
-        return redirect("speakstable")
-    
+
+    entry = get_object_or_404(Speaks, id = id)
+    if request.user == entry.user:
+        if request.method == "POST":
+            entry.delete()
+            return redirect("speakstable")
+        
+    else:
+        return HttpResponse("<h1>Access denied!</h1>")
+
+    context = {}
     return redirect("speakstable")
 
 @login_required(login_url='loginpage')
 def change_include(request, id):
-    entry = get_object_or_404(Speaks, id=id)
-    
-    if request.user != entry.user:
-        return JsonResponse({"error": "Access denied"}, status=403)
-    
-    if request.method == "POST":
-        entry.include = not entry.include
+
+    entry = get_object_or_404(Speaks, id = id)
+    if request.user == entry.user:
+        if request.method == "POST":
+            if entry.include == True:
+                entry.include = False
+                include_value = False
+            else:
+                entry.include = True
+                include_value = True
         entry.save()
-        return JsonResponse({"include": entry.include})
-    
-    return JsonResponse({"error": "Method not allowed"}, status=405)
+
+    return JsonResponse({"include": include_value})
 
 
 @login_required(login_url='loginpage')
