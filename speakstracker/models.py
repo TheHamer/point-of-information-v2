@@ -78,7 +78,7 @@ class Speaks(models.Model):
         
         For round 1, returns 1.5 (exactly average).
         """
-        if self.round is None or self.round == 1:
+        if self.round is None or self.round <= 1:
             return 1.5
         if self.room_points is None:
             return 1.5
