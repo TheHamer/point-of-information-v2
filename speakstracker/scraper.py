@@ -47,7 +47,7 @@ class PersonDataScraper:
         retry = Retry(connect=3, backoff_factor=0.5)
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
-        session.mount('http://', adapter)
+        session.mount('https://', adapter)
         
         response = session.get(url)
         new_url = response.url
@@ -96,21 +96,34 @@ class PersonDataScraper:
             raise ValueError(f"Script tag data does not contain expected '{{\"head\":' pattern")
         raw_data_speaker = json.loads('{"head":' + cut_tag_0_split[1])
                 
+        team_index = None
+        name_index = None
         for index, value in enumerate(raw_data_speaker["head"]):
             if value["key"] == "team":
                 team_index = index
-                
             elif value["key"] == "name":
                 name_index = index
+        
+        if team_index is None or name_index is None:
+            raise ValueError("Could not find 'team' or 'name' columns in participant data")
                 
+        team_name = None
         for row in raw_data_speaker["data"]:
             if row[name_index]["text"] == name:
                 team_name = row[team_index]["text"]
+                break
+        
+        if team_name is None:
+            raise ValueError(f"Speaker '{name}' not found in participant list")
                 
+        partner_name = None
         for row in raw_data_speaker["data"]:
-            if row[team_index]["text"] == team_name:
-                if row[name_index]["text"] != name:
-                    partner_name = row[name_index]["text"]
+            if row[team_index]["text"] == team_name and row[name_index]["text"] != name:
+                partner_name = row[name_index]["text"]
+                break
+        
+        if partner_name is None:
+            raise ValueError(f"Partner not found for speaker '{name}' in team '{team_name}'")
         
         return team_name, partner_name
     
