@@ -318,6 +318,7 @@ def speakstable(request):
             'info_slide': speaks.info_slide,
             'include': speaks.include,
             'call': speaks.get_call(),
+            'call_list': speaks.get_call_list(),
         }
         speaks_data.append(speaks_dict)
 
@@ -465,7 +466,7 @@ def speaksanalysis_static(request):
 
 @login_required(login_url='loginpage')
 def speaksanalysis_dynamic(request):
-    """Dynamic analysis page with filters, heatmap, average points, and speaks vs time."""
+    """Dynamic analysis page with filters, heatmap, average points, and Speaks over time."""
     speaks_data = Speaks.objects.filter(user=request.user, include=True)
     full_data_list = list(speaks_data.values())
 
@@ -492,7 +493,7 @@ def speaksanalysis_dynamic(request):
     # Heatmap data
     heatmap_data = speaks_calculate.positional_win_rate_heatmap()
 
-    # Speaks vs time
+    # Speaks over time
     date_not_null = speaks_data.exclude(date__isnull=True)
     dates = list(date_not_null.values_list('date', flat=True))
     speaks_scores = list(date_not_null.values_list('speaker_score', flat=True))
@@ -656,7 +657,7 @@ def filtered_analysis_data(request):
     # Heatmap data
     heatmap_data = speaks_calculate.positional_win_rate_heatmap()
     
-    # Speaks vs time
+    # Speaks over time
     speaks_vs_time = []
     for entry in filtered_data:
         if entry.get('date') and entry.get('speaker_score'):

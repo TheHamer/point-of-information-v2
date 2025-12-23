@@ -66,8 +66,14 @@
             </td>
 
             <td class="call-speaks-td">
-                {% if speaks.call %}
-                    {{ speaks.call }}
+                {% if speaks.call_list %}
+                    {% for position in speaks.call_list %}
+                        {% if position == speaks.team_position %}
+                            <strong>{{ position }}</strong>{% if not forloop.last %} {% endif %}
+                        {% else %}
+                            {{ position }}{% if not forloop.last %} {% endif %}
+                        {% endif %}
+                    {% endfor %}
                 {% else %}
                     —
                 {% endif %}

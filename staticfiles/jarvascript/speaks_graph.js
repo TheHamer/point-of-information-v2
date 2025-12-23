@@ -143,7 +143,7 @@ const AveragePointsChart = (function() {
     teamPointsData = [];
     
     data.forEach(entry => {
-      // Calculate average points so far (matches Python model: average_points_so_far)
+      // Calculate Speaks by average points of room (matches Python model: average_points_so_far)
       // Formula: room_points / (round - 1) for round > 1
       // Returns 1.5 for round 1 or if round/room_points is None
       const round = entry.round;
@@ -247,7 +247,7 @@ const AveragePointsChart = (function() {
   }
   
   /**
-   * Plugin to draw best fit line and error bars (similar to speaks vs time chart)
+   * Plugin to draw best fit line and error bars (similar to Speaks over time chart)
    */
   const scatterBestFitLinePlugin = {
     id: 'scatterBestFitLine',
@@ -680,6 +680,14 @@ const AveragePointsChart = (function() {
         toggleBtn.textContent = newAxis === 'speaker_score' 
           ? 'Show Team Points' 
           : 'Show Speaker Score';
+        
+        // Update title based on selected display
+        const titleElement = document.getElementById('avg-points-title');
+        if (titleElement) {
+          titleElement.textContent = newAxis === 'speaker_score' 
+            ? 'Speaks by average points of room' 
+            : 'Team points by average points of room';
+        }
       });
     }
     

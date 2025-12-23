@@ -74,7 +74,7 @@ class Speaks(models.Model):
     @property
     def average_points_so_far(self):
         """
-        Calculate average points so far (cumulative team points / round number - 1).
+        Calculate Speaks by average points of room (cumulative team points / round number - 1).
         
         For round 1, returns 1.5 (exactly average).
         """

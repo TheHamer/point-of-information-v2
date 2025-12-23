@@ -717,7 +717,7 @@ const smallSpeaksGraph = function() {
     // Update the internal data reference
     chartData = filteredData;
 
-    // Prepare speaks vs time data
+    // Prepare Speaks over time data
     const speaksVsTime = filteredData
       .filter(entry => entry.date && entry.speaker_score)
       .map(entry => ({

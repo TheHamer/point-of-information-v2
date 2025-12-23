@@ -34,7 +34,7 @@ const FilterState = (function() {
   }
   
   /**
-   * Calculate average points so far for an entry
+   * Calculate Speaks by average points of room for an entry
    * Matches Python model property: average_points_so_far
    * Formula: room_points / (round - 1) for round > 1
    * Returns 1.5 for round 1 or if round/room_points is None
