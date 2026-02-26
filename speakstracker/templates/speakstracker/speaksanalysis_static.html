@@ -1,56 +1,46 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Speaks Analysis{% endblock %}
+{% block title %}Static Analysis{% endblock %}
 
 {% block header %}
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<!-- Chart Scripts -->
 <script src="{% static 'jarvascript/speaks_graph.js' %}" defer></script>
+<script src="{% static 'jarvascript/variable_by_time.js' %}" defer></script>
+
+<!-- Data -->
 {{ position_speak_avg|json_script:"position_speak_avg" }}
 {{ grouped_position_avg|json_script:"grouped_position_avg" }}
 {{ room_points_avg|json_script:"room_points_avg" }}
 {{ partner_avg|json_script:"partner_avg" }}
 {{ motion_avg|json_script:"motion_avg" }}
-
-<script src="{% static 'jarvascript/variable_by_time.js' %}" defer></script>
 {{ full_data_list|json_script:"full_data_list"}}
-{{ speaks_vs_time|json_script:"speaks_vs_time" }}
 
+<style>
+.no-data {
+    color: #888;
+    font-style: italic;
+}
+</style>
 {% endblock %}
 
 {% block content %}
 
 <div class="page-title">
-    <h1>Speaks Analysis</h1>
+    <h1>Static Analysis</h1>
 </div>
 
-<div class="table-title">
-    <h3>Speaks vs time</h3>
-</div>
-
-<div class="speaks-table-body-graph">
-    {% if speaks_vs_time is not None %}
-        <canvas id="speaks_vs_time_chart"></canvas>
-        <div class="clear-float"></div>
-    {% else %}
-        <div class="no-data-graph">
-            <h3>No data to show</h3>
-        </div>
-    {% endif %}
-</div>
-<div class="change-graph-box"></div>
-
+<!-- Speaker Position -->
 <div class="table-title">
     <h3 class="inline-h3">Speaker position</h3>
 </div>
 
 <div class="speaks-table-body-anlsis">
-
     {% if position_speak_avg is not None %}
-    
         <table class="speaks-table">
             <tr>
                 <th>Position</th>
@@ -60,9 +50,9 @@
             </tr>
             {% for value in position_speak_avg.values %}
                 <tr class="data-row">
-                        {% for item in value %}
-                            <td>{{item}}</td>
-                        {% endfor %}
+                    {% for item in value %}
+                        <td>{{item}}</td>
+                    {% endfor %}
                 </tr>
             {% endfor %}
         </table>
@@ -74,13 +64,10 @@
         <div class="graph-box-scatter" id="speaker-positon-scatter">
             <canvas id="speaker_postion_scatter"></canvas>
         </div>
-    
     {% else %}
-
         <div class="no-data">
             <h3>No data to show</h3>
         </div>
-
     {% endif %}
 
     <div class="clear-float"></div>
@@ -99,14 +86,13 @@
     {% endif %}
 </div>
 
+<!-- Position Groups -->
 <div class="table-title">
     <h3 class="inline-h3">Position groups</h3>
 </div>
 
 <div class="speaks-table-body-anlsis">
-
     {% if grouped_position_avg is not None %}
-
         <table class="speaks-table">
             <tr>
                 <th>Position</th>
@@ -117,9 +103,9 @@
 
             {% for value in grouped_position_avg.values %}
             <tr class="data-row">
-                    {% for item in value %}
-                        <td>{{item}}</td>
-                    {% endfor %}
+                {% for item in value %}
+                    <td>{{item}}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </table>
@@ -131,13 +117,10 @@
         <div class="graph-box-scatter" id="speaker-group-scatter">
             <canvas id="position_grouped_scatter"></canvas>
         </div>
-
     {% else %}
-
         <div class="no-data">
             <h3>No data to show</h3>
         </div>
-
     {% endif %}
 
     <div class="clear-float"></div>
@@ -156,16 +139,13 @@
     {% endif %}
 </div>
 
-
+<!-- Room Points (Legacy) -->
 <div class="table-title">
     <h3 class="inline-h3">Room points</h3>
 </div>
 
-
 <div class="speaks-table-body-anlsis">
-
     {% if room_points_avg is not None %}
-
         <table class="speaks-table">
             <tr>
                 <th>Points</th>
@@ -175,9 +155,9 @@
             </tr>
             {% for value in room_points_avg.values %}
             <tr class="data-row">
-                    {% for item in value %}
-                        <td>{{item}}</td>
-                    {% endfor %}
+                {% for item in value %}
+                    <td>{{item}}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </table>
@@ -189,13 +169,10 @@
         <div class="graph-box-scatter" id="speaker-points-scatter">
             <canvas id="room_points_scatter"></canvas>
         </div>
-    
     {% else %}
-
         <div class="no-data">
             <h3>No data to show</h3>
         </div>
-
     {% endif %}
 
     <div class="clear-float"></div>
@@ -214,14 +191,13 @@
     {% endif %}
 </div>
 
+<!-- Partner -->
 <div class="table-title">
     <h3 class="inline-h3">Partner</h3>
 </div>
 
 <div class="speaks-table-body-anlsis">
-
     {% if partner_avg is not None %}
-
         <table class="speaks-table">
             <tr>
                 <th>Partner</th>
@@ -231,9 +207,9 @@
             </tr>
             {% for value in partner_avg.values %}
             <tr class="data-row">
-                    {% for item in value %}
-                        <td>{{item}}</td>
-                    {% endfor %}
+                {% for item in value %}
+                    <td>{{item}}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </table>
@@ -245,13 +221,10 @@
         <div class="graph-box-scatter" id="speaker-partner-scatter">
             <canvas id="partner_scatter"></canvas>
         </div>
-
     {% else %}
-
         <div class="no-data">
             <h3>No data to show</h3>
         </div>
-
     {% endif %}
 
     <div class="clear-float"></div>
@@ -262,7 +235,7 @@
             show vs time
         </button>
 
-        <select class="graph-dropdown" id="partner-dropdown">
+        <select class="graph-dropdown" id="partner-dropdown" multiple>
             {% for value in partner_avg.values %}
                 <option value="{{value.0}}">{{value.0}}</option>
             {% endfor %}
@@ -270,14 +243,13 @@
     {% endif %}
 </div>
 
+<!-- Motion Type -->
 <div class="table-title">
     <h3 class="inline-h3">Motion type</h3>
 </div>
 
 <div class="speaks-table-body-anlsis">
-
     {% if motion_avg is not None %}
-
         <table class="speaks-table">
             <tr>
                 <th>Motion type</th>
@@ -287,9 +259,9 @@
             </tr>
             {% for value in motion_avg.values %}
             <tr class="data-row">
-                    {% for item in value %}
-                        <td>{{item}}</td>
-                    {% endfor %}
+                {% for item in value %}
+                    <td>{{item}}</td>
+                {% endfor %}
             </tr>
             {% endfor %}
         </table>
@@ -301,13 +273,10 @@
         <div class="graph-box-scatter" id="speaker-type-scatter">
             <canvas id="motion_scatter"></canvas>
         </div>
-
     {% else %}
-
         <div class="no-data">
             <h3>No data to show</h3>
         </div>
-
     {% endif %}
 
     <div class="clear-float"></div>
@@ -327,3 +296,4 @@
 </div>
 
 {% endblock %}
+

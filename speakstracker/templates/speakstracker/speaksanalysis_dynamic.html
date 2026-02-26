@@ -1,0 +1,395 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dynamic Analysis{% endblock %}
+
+{% block header %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-moment"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+
+<!-- Filter and Chart Scripts -->
+<script src="{% static 'jarvascript/filters.js' %}" defer></script>
+<script src="{% static 'jarvascript/speaks_graph.js' %}" defer></script>
+<script src="{% static 'jarvascript/positional_heatmap.js' %}" defer></script>
+<script src="{% static 'jarvascript/variable_by_time.js' %}" defer></script>
+
+<!-- Data -->
+{{ avg_points_data|json_script:"avg_points_data" }}
+{{ avg_points_team_data|json_script:"avg_points_team_data" }}
+{{ avg_points_best_fit|json_script:"avg_points_best_fit" }}
+{{ full_data_list|json_script:"full_data_list"}}
+{{ speaks_vs_time|json_script:"speaks_vs_time" }}
+{{ filter_options|json_script:"filter_options" }}
+{{ heatmap_data|json_script:"heatmap_data" }}
+
+<style>
+/* Filter Controls Styling */
+.filter-section {
+    background: white;
+    border: 1px solid #ededed;
+    border-radius: 5px;
+    padding: 12px;
+    margin-bottom: 24px;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.filter-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: flex-start;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.filter-group label {
+    font-size: 0.85em;
+    color: #666;
+    font-weight: 500;
+}
+
+.filter-btn-group {
+    display: grid;
+    gap: 4px;
+}
+
+#team-position-filters {
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+}
+
+#speaker-position-filters {
+    grid-template-columns: repeat(2, 1fr);
+}
+
+.filter-btn {
+    padding: 6px 12px;
+    border: 1px solid #ededed;
+    background: #f9f9f9;
+    color: #333;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.9em;
+    transition: all 0.2s ease;
+}
+
+.filter-btn:hover {
+    background: #ededed;
+}
+
+.filter-btn.active {
+    background: #7F00FF;
+    border-color: #7F00FF;
+    color: #fff;
+}
+
+.filter-btn.disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+.filter-select {
+    padding: 6px 10px;
+    border: 1px solid #ededed;
+    background: white;
+    color: #333;
+    border-radius: 5px;
+    min-width: 150px;
+    min-height: 32px;
+}
+
+#partner-filters,
+#motion-type-filters,
+#date-range-filters {
+    min-height: auto;
+    display: flex;
+    align-items: center;
+}
+
+.filter-date {
+    padding: 6px 10px;
+    border: 1px solid #ededed;
+    background: white;
+    color: #333;
+    border-radius: 5px;
+}
+
+#clear-filters {
+    padding: 8px 16px;
+    background: red;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition-duration: 0.3s;
+}
+
+#clear-filters:hover {
+    background: #BF40BF;
+    box-shadow: 3px 3px 3px -3px gray;
+}
+
+.filter-section .no-data {
+    color: #8E8E90;
+    font-style: italic;
+    font-size: 0.85em;
+    line-height: 1.2;
+    margin: 0;
+    padding: 0;
+    height: auto;
+    width: auto;
+    display: inline;
+    justify-content: normal;
+}
+
+#partner-filters .no-data,
+#motion-type-filters .no-data {
+    height: auto;
+    line-height: 1.2;
+    display: inline;
+}
+
+/* Heatmap Section */
+.heatmap-container {
+    max-width: 100%;
+    margin: 0;
+}
+
+/* Average Points Chart */
+.avg-points-section {
+    margin-bottom: 24px;
+    flex-direction: column;
+    align-items: center;
+}
+
+.avg-points-section canvas {
+    max-width: 70%;
+    height: auto !important;
+}
+
+.toggle-container {
+    margin-top: 12px;
+    text-align: center;
+    width: 100%;
+}
+
+.toggle-btn {
+    padding: 8px 16px;
+    background: #7F00FF;
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: 500;
+    transition-duration: 0.3s;
+}
+
+.toggle-btn:hover {
+    background: #BF40BF;
+    box-shadow: 3px 3px 3px -3px gray;
+}
+
+/* Active filter indicator */
+.filter-active-indicator {
+    background: #7F00FF;
+    color: #fff;
+    padding: 4px 8px;
+    border-radius: 5px;
+    font-size: 0.8em;
+    margin-left: auto;
+}
+
+/* Overview and Split Win Rate side by side */
+.overview-heatmap-container {
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+    flex-wrap: wrap;
+}
+
+.overview-section {
+    flex: 1;
+    min-width: 250px;
+}
+
+.heatmap-section-wrapper {
+    flex: 1;
+    min-width: 400px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+
+<div class="page-title">
+    <h1>Dynamic Analysis</h1>
+</div>
+
+<!-- Filter Controls -->
+<div class="filter-section" id="filter-controls">
+    <div class="filter-controls">
+        <!-- Team Position Filter -->
+        <div class="filter-group">
+            <label>Team Position</label>
+            <div class="filter-btn-group" id="team-position-filters">
+                <!-- Buttons generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Speaker Position Filter -->
+        <div class="filter-group">
+            <label>Speaker Position</label>
+            <div class="filter-btn-group" id="speaker-position-filters">
+                <!-- Buttons generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Partner Filter -->
+        <div class="filter-group">
+            <label>Partner</label>
+            <div id="partner-filters">
+                <!-- Select generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Motion Type Filter -->
+        <div class="filter-group">
+            <label>Motion Type</label>
+            <div id="motion-type-filters">
+                <!-- Select generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Date Range Filter -->
+        <div class="filter-group">
+            <label>Date Range</label>
+            <div id="date-range-filters">
+                <!-- Date inputs generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Average Points Per Room Range Filter -->
+        <div class="filter-group">
+            <label>Avg Points Per Room</label>
+            <div id="avg-points-range-filters">
+                <!-- Range inputs generated by JS -->
+            </div>
+        </div>
+        
+        <!-- Clear Button -->
+        <div class="filter-group" style="justify-content: flex-end;">
+            <label>&nbsp;</label>
+            <button id="clear-filters">Clear All</button>
+        </div>
+    </div>
+</div>
+
+<!-- Overview and Split Win Rate Side by Side -->
+<div class="overview-heatmap-container">
+    <!-- Speaks Overview -->
+    <div class="overview-section">
+        <div class="table-title">
+            <h3>Overview</h3>
+        </div>
+        <div class="speaks-table-body-anlsis">
+            <table class="speaks-table">
+                <tr>
+                    <th>Metric</th>
+                    <th>Value</th>
+                </tr>
+                <tr class="data-row">
+                    <td>Avg speaks</td>
+                    <td id="overview-avg">-</td>
+                </tr>
+                <tr class="data-row">
+                    <td>Std</td>
+                    <td id="overview-std">-</td>
+                </tr>
+                <tr class="data-row">
+                    <td>Lowest speaks</td>
+                    <td id="overview-min">-</td>
+                </tr>
+                <tr class="data-row">
+                    <td>Highest speaks</td>
+                    <td id="overview-max">-</td>
+                </tr>
+                <tr class="data-row">
+                    <td>Average Points</td>
+                    <td id="overview-avg-points">-</td>
+                </tr>
+                <tr class="data-row">
+                    <td>No. rounds</td>
+                    <td id="overview-count">-</td>
+                </tr>
+            </table>
+            <div class="clear-float"></div>
+        </div>
+    </div>
+    
+    <!-- Split Win Rate (Heatmap) -->
+    <div class="heatmap-section-wrapper">
+        <div class="table-title">
+            <h3>Split Win Rate</h3>
+        </div>
+        <div class="speaks-table-body-graph">
+            <div class="heatmap-container" id="positional-heatmap">
+                {% if heatmap_data is not None %}
+                    <!-- Heatmap rendered by JS -->
+                {% else %}
+                    <div class="no-data-graph">
+                        <h3>No positional data available</h3>
+                        <p>Add tournament data with team positions to see win rate analysis.</p>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="clear-float"></div>
+        </div>
+    </div>
+</div>
+
+<!-- Speaks over time -->
+<div class="table-title">
+    <h3>Speaks over time</h3>
+</div>
+
+<div class="speaks-table-body-graph">
+    {% if speaks_vs_time is not None %}
+        <canvas id="speaks_vs_time_chart"></canvas>
+        <div class="clear-float"></div>
+    {% else %}
+        <div class="no-data-graph">
+            <h3>No data to show</h3>
+        </div>
+    {% endif %}
+</div>
+<div class="change-graph-box"></div>
+
+<!-- Speaks by average points of room -->
+<div class="table-title">
+    <h3 id="avg-points-title">Speaks by average points of room</h3>
+</div>
+
+<div class="speaks-table-body-graph avg-points-section">
+    {% if avg_points_data is not None %}
+        <canvas id="avg_points_chart"></canvas>
+        <div class="toggle-container">
+            <button class="toggle-btn" id="avg-points-toggle">Show Team Points</button>
+        </div>
+        <div class="clear-float"></div>
+    {% else %}
+        <div class="no-data-graph">
+            <h3>No data to show</h3>
+        </div>
+    {% endif %}
+</div>
+
+{% endblock %}
+

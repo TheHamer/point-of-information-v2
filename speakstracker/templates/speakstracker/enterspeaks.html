@@ -27,12 +27,12 @@
                 {% endfor %}
             </div>
 
+            <div class="register-message">
+                <p>*required</p>
+            </div>
+
             <button type="submit" class="login-button">Submit</button>
         </form>
-
-        <div class="register-message">
-            <p>*required</p>
-        </div>
         
     </div>
     
@@ -44,9 +44,28 @@
 
         <form method="POST">
             {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div class="enter-message" style="color: red;">
+                    {% for error in form.non_field_errors %}
+                        <div>{{ error }}</div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+            
             {% for field in form %}
                 <div class="enter-speaks-label">{{field.label}}</div>
                 <div>{{field}}</div>
+                {% if field.errors %}
+                    <div style="color: red; font-size: 0.9em; margin-bottom: 10px;">
+                        {% for error in field.errors %}
+                            <div>{{ error }}</div>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+                {% if field.help_text and field.name == 'call' %}
+                    <div class="enter-speaks-help-text">{{field.help_text}}</div>
+                {% endif %}
             {% endfor %}
 
             <div class="enter-message">
@@ -57,13 +76,13 @@
                 {% endfor %}
             </div>
 
+            <div class="register-message">
+                <p>*required</p>
+            </div>
+
             <button type="submit" class="login-button">Submit</button>
 
         </form>
-
-        <div class="register-message">
-            <p>*required</p>
-        </div>
 
     </div>
 

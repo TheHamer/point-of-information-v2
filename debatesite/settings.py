@@ -17,7 +17,6 @@ import dotenv
 # Add .env variables anywhere before SECRET_KEY
 
 # UPDATE secret key
-#print(os.environ['SECRET_KEY'])
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -34,7 +33,9 @@ if os.path.isfile(dotenv_file):
 SECRET_KEY = os.environ['SECRET_KEY']
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+# Set DEBUG=True for local development to enable static file serving
+# For production, set DEBUG=False and configure a web server to serve static files
+DEBUG = os.environ.get('DEBUG', 'True').lower() == 'true'
 
 ALLOWED_HOSTS = ['138.68.173.138', '127.0.0.1', 'point-of-information.com', 'www.point-of-information.com']
 
@@ -96,6 +97,7 @@ DATABASES = {
         'PORT': '',
     }
 }
+
 
 """
 DATABASES = {

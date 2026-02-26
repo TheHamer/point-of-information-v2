@@ -47,7 +47,7 @@ class PersonDataScraper:
         retry = Retry(connect=3, backoff_factor=0.5)
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
-        session.mount('http://', adapter)
+        session.mount('https://', adapter)
         
         response = session.get(url)
         new_url = response.url
@@ -82,29 +82,48 @@ class PersonDataScraper:
         return soup
     
     def __get_team_name_and_partner(self, name):
-        
         new_path = self.path + "participants/list/"
         soup = self.__get_soup(new_path)
         tags = soup.find_all('script')
-        cut_tag_0 = tags[-4].text.split("[", 1)[1][:-10]
+        if len(tags) < 4:
+            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
+        split_result = tags[-4].text.split("[", 1)
+        if len(split_result) < 2:
+            raise ValueError(f"Script tag text does not contain expected '[' pattern")
+        cut_tag_0 = split_result[1][:-10]
         cut_tag_0_split = cut_tag_0.split(', {"head":', 1)
+        if len(cut_tag_0_split) < 2:
+            raise ValueError(f"Script tag data does not contain expected '{{\"head\":' pattern")
         raw_data_speaker = json.loads('{"head":' + cut_tag_0_split[1])
                 
+        team_index = None
+        name_index = None
         for index, value in enumerate(raw_data_speaker["head"]):
             if value["key"] == "team":
                 team_index = index
-                
             elif value["key"] == "name":
                 name_index = index
+        
+        if team_index is None or name_index is None:
+            raise ValueError("Could not find 'team' or 'name' columns in participant data")
                 
+        team_name = None
         for row in raw_data_speaker["data"]:
             if row[name_index]["text"] == name:
                 team_name = row[team_index]["text"]
+                break
+        
+        if team_name is None:
+            raise ValueError(f"Speaker '{name}' not found in participant list")
                 
+        partner_name = None
         for row in raw_data_speaker["data"]:
-            if row[team_index]["text"] == team_name:
-                if row[name_index]["text"] != name:
-                    partner_name = row[name_index]["text"]
+            if row[team_index]["text"] == team_name and row[name_index]["text"] != name:
+                partner_name = row[name_index]["text"]
+                break
+        
+        if partner_name is None:
+            raise ValueError(f"Partner not found for speaker '{name}' in team '{team_name}'")
         
         return team_name, partner_name
     
@@ -113,7 +132,12 @@ class PersonDataScraper:
         new_path = self.path + "tab/speaker/"
         soup = self.__get_soup(new_path)
         tags = soup.find_all('script')
-        cut_tag_0 = tags[-4].text.split("[", 1)[1][:-10]
+        if len(tags) < 4:
+            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
+        split_result = tags[-4].text.split("[", 1)
+        if len(split_result) < 2:
+            raise ValueError(f"Script tag text does not contain expected '[' pattern")
+        cut_tag_0 = split_result[1][:-10]
         raw_data = json.loads(cut_tag_0)
         
         rounds = {}
@@ -141,7 +165,12 @@ class PersonDataScraper:
         new_path = self.path + "tab/team/"
         soup = self.__get_soup(new_path)
         tags = soup.find_all('script')
-        cut_tag_0 = tags[-4].text.split("[", 1)[1][:-10]
+        if len(tags) < 4:
+            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
+        split_result = tags[-4].text.split("[", 1)
+        if len(split_result) < 2:
+            raise ValueError(f"Script tag text does not contain expected '[' pattern")
+        cut_tag_0 = split_result[1][:-10]
         raw_data = json.loads(cut_tag_0)
         
         rounds = {}
@@ -166,10 +195,14 @@ class PersonDataScraper:
         return points
     
     def __get_round_results(self, path, team_name, name):
-        
         soup = self.__get_soup(path)
         tags = soup.find_all('script')
-        cut_tag_0 = tags[-4].text.split("[", 1)[1][:-10]
+        if len(tags) < 4:
+            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
+        split_result = tags[-4].text.split("[", 1)
+        if len(split_result) < 2:
+            raise ValueError(f"Script tag text does not contain expected '[' pattern")
+        cut_tag_0 = split_result[1][:-10]
         raw_data = json.loads(cut_tag_0)
         
         ballot_index = None
@@ -215,7 +248,6 @@ class PersonDataScraper:
                         speakers = speakers_and_team[:2]
                         
                         for speaker in speakers:
-                
                             contents = speaker.contents
                             name_tab = contents[2].strip()
                             
@@ -240,7 +272,6 @@ class PersonDataScraper:
             if re.match("Round \d+", round_name):
                 
                 round_number = round_name[6:]
-                
                 motion = round_.find('h4').contents[0].text.strip()
                 info_slide = round_.find('div', {'class': 'modal-body lead'})
                 

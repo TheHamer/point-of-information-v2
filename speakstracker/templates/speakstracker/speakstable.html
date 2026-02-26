@@ -7,6 +7,7 @@
 
 <script src="{% static 'jarvascript/motion_modal.js' %}" defer></script>
 <script src="{% static 'jarvascript/fetch_include.js' %}" defer></script>
+<script src="{% static 'jarvascript/table_sort.js' %}" defer></script>
 
 {% endblock %}
 
@@ -30,6 +31,7 @@
             <th class="narrow-speaks-th">Team Pts</th>
             <th class="narrow-speaks-th">Speaks</th>
             <th class="narrow-speaks-th">Motion</th>
+            <th class="call-speaks-th">Call</th>
             <th class="narrow-speaks-th">Include</th>
             <th class="narrow-speaks-th">Update</th>
             <th class="narrow-speaks-th">Delete</th>
@@ -37,13 +39,22 @@
             
         {% for speaks in speaks_data %}
         <tr class="data-row">
-            {% for key, value in speaks.items %}
-                {% if key == "date" or key == "partner" or key == "tournament" %}
-                    <td class="wide-speaks-td">{{value}}</td>
-                {% elif not key == "id" and not key == "user_id" and not key == "motion" and not key == "info_slide" and not key == "include" %}
-                    <td class="narrow-speaks-td">{{value}}</td>
+            <td class="wide-speaks-td" data-sort-value="{{ speaks.date|date:'Y-m-d' }}">{{ speaks.date }}</td>
+            <td class="wide-speaks-td" data-sort-value="{{ speaks.tournament }}">
+                {% if speaks.tournament_url %}
+                    <a href="{{ speaks.tournament_url }}" target="_blank" rel="noopener noreferrer">{{ speaks.tournament }}</a>
+                {% else %}
+                    {{ speaks.tournament }}
                 {% endif %}
-            {% endfor %}
+            </td>
+            <td class="wide-speaks-td">{{ speaks.partner }}</td>
+            <td class="narrow-speaks-td">{{ speaks.round }}</td>
+            <td class="narrow-speaks-td">{{ speaks.room_points }}</td>
+            <td class="narrow-speaks-td">{{ speaks.team_position }}</td>
+            <td class="narrow-speaks-td">{{ speaks.speaker_position }}</td>
+            <td class="narrow-speaks-td">{{ speaks.motion_type }}</td>
+            <td class="narrow-speaks-td">{{ speaks.team_points }}</td>
+            <td class="narrow-speaks-td">{{ speaks.speaker_score }}</td>
 
             <td class="narrow-speaks-td">
                 {% if speaks.motion or speaks.info_slide %}
@@ -52,6 +63,20 @@
                     <button disabled>Motion</button>
                 {% endif %}
 
+            </td>
+
+            <td class="call-speaks-td">
+                {% if speaks.call_list %}
+                    {% for position in speaks.call_list %}
+                        {% if position == speaks.team_position %}
+                            <strong>{{ position }}</strong>{% if not forloop.last %} {% endif %}
+                        {% else %}
+                            {{ position }}{% if not forloop.last %} {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                {% else %}
+                    —
+                {% endif %}
             </td>
 
             <td class="narrow-speaks-td">

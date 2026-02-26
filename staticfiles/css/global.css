@@ -199,6 +199,11 @@ header .dropdown a:hover {
     display: none;
 }
 
+.graph-dropdown[multiple] {
+    min-height: 100px;
+    width: 150px;
+}
+
 /* speaks table */
 
 .speaks-table-body {
@@ -275,6 +280,12 @@ header .dropdown a:hover {
     width: 70px;
 }
 
+.wide-speaks-table th.call-speaks-th {
+    text-align: left;
+    height: 30px;
+    width: 140px;
+}
+
 .wide-speaks-table td {
     height: 30px;
     border-top: 1px solid #ededed;
@@ -308,6 +319,12 @@ header .dropdown a:hover {
     white-space: nowrap;
 }
 
+.call-speaks-td {
+    min-width: 120px;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
 .speaks-table th:first-child {
     width: 120px;
     padding-right: 5px; 
@@ -320,6 +337,41 @@ header .dropdown a:hover {
 
 .speaks-table tr.data-row:hover, .wide-speaks-table tr.data-row:hover  {
     background-color: #ededed;
+}
+
+/* Table sorting styles */
+.wide-speaks-table th.sortable {
+    position: relative;
+    padding-right: 20px;
+}
+
+.wide-speaks-table th.sortable:hover {
+    background-color: #f5f5f5;
+}
+
+.wide-speaks-table th.sortable::after {
+    content: '';
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 0;
+    height: 0;
+    border-left: 4px solid transparent;
+    border-right: 4px solid transparent;
+    opacity: 0.3;
+}
+
+.wide-speaks-table th.sortable.sort-asc::after {
+    border-bottom: 6px solid #333;
+    border-top: none;
+    opacity: 1;
+}
+
+.wide-speaks-table th.sortable.sort-desc::after {
+    border-top: 6px solid #333;
+    border-bottom: none;
+    opacity: 1;
 }
 
 .graph-box-scatter {
@@ -519,7 +571,7 @@ header .dropdown a:hover {
 .update-speaks-box {
     width: 90%;
     max-width: 350px;
-    height: 865.0px;
+    min-height: 865.0px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -639,7 +691,7 @@ header .dropdown a:hover {
 .login-box {
     width: 90%;
     max-width: 350px;
-    height: 320px;
+    min-height: 320px;
     margin-top: 100px;
     margin-left: auto;
     margin-right: auto;
@@ -698,7 +750,7 @@ header .dropdown a:hover {
 .register-box {
     width: 90%;
     max-width: 350px;
-    height: 500px;
+    min-height: 500px;
     margin-top: 100px;
     margin-bottom: 20px;
     margin-left: auto;
@@ -722,19 +774,6 @@ header .dropdown a:hover {
 
 /* password reset css */
 
-.reset-password-box {
-    width: 90%;
-    max-width: 350px;
-    height: 365px;
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: white;
-    border: 1px solid #ededed;
-    text-align: center;
-    position: relative;
-}
-
 .email-sent-message {
     height: inherit;
     margin-top: 90px;
@@ -748,8 +787,7 @@ header .dropdown a:hover {
 .reset-password-box {
     width: 90%;
     max-width: 350px;
-    height: 475px;
-    margin-top: 100px;
+    margin-top: 40px;
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
@@ -762,8 +800,7 @@ header .dropdown a:hover {
 .update-user-box {
     width: 90%;
     max-width: 350px;
-    height: 365px;
-    margin-top: 100px;
+    margin-top: 40px;
     margin-left: auto;
     margin-right: auto;
     background-color: white;
@@ -781,7 +818,7 @@ header .dropdown a:hover {
 .enter-speaks-box {
     width: 90%;
     max-width: 350px;
-    height: 820.0px;
+    min-height: 820.0px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -818,10 +855,18 @@ select.enter-speaks-select option {
     margin-top: 4px;
 }
 
+.enter-speaks-help-text {
+    font-size: 12px;
+    color: #666;
+    margin-top: 2px;
+    margin-bottom: 8px;
+    font-style: italic;
+}
+
 .enter-url-box {
     width: 90%;
     max-width: 350px;
-    height: 380px;
+    min-height: 300px;
     margin-left: auto;
     margin-right: auto;
     margin-top: 10px;
@@ -833,13 +878,51 @@ select.enter-speaks-select option {
 }
 
 .enter-message {
-    margin-top: 10px;
+    margin-top: 2px;
     color: #BF40BF;
+}
+
+.enter-url-box form .register-message,
+.enter-speaks-box form .register-message,
+.update-speaks-box form .register-message {
+    position: relative !important;
+    z-index: 2;
+    clear: both;
+    display: block;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    padding: 0;
+}
+
+.register-message p {
+    margin: 0;
+}
+
+.enter-url-box form .login-button,
+.enter-speaks-box form .login-button,
+.update-speaks-box form .login-button {
+    margin-top: 0;
+    margin-bottom: 15px;
+    position: relative;
+    z-index: 3;
+}
+
+.update-speaks-box > div .login-button,
+.update-user-box > div .login-button,
+.reset-password-box > div .login-button {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.update-user-box form .login-button,
+.reset-password-box form .login-button {
+    margin-bottom: 10px;
 }
 
 @media only screen and (min-width: 700px) {
     .all-enter-boxes {
       display: flex;
+      align-items: flex-start;
     }
 
 }

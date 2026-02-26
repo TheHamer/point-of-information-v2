@@ -15,11 +15,30 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from django.conf import settings
+from django.conf.urls.static import static
+from django.views.static import serve
 from debatecalendar import views as cal
+
+def favicon_view(request):
+    """Serve favicon.ico from static files."""
+    if settings.STATICFILES_DIRS:
+        return serve(request, 'favicon.ico', document_root=settings.STATICFILES_DIRS[0])
+    from django.http import Http404
+    raise Http404
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('favicon.ico', favicon_view, name='favicon'),
     path('', include('speakstracker.urls'), name="speakstracker"),
     path('calendar/', cal.calendar, name="calendar"),
     path('speakstracker/', include('speakstracker.urls'), name="speakstracker")
 ]
+
+# Serve static files
+if settings.DEBUG:
+    from django.contrib.staticfiles.urls import staticfiles_urlpatterns
+    urlpatterns += staticfiles_urlpatterns()
+elif settings.STATICFILES_DIRS:
+    # Also serve static files when DEBUG=False (for local testing)
+    urlpatterns += static(settings.STATIC_URL, document_root=settings.STATICFILES_DIRS[0])
