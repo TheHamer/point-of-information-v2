@@ -774,19 +774,6 @@ header .dropdown a:hover {
 
 /* password reset css */
 
-.reset-password-box {
-    width: 90%;
-    max-width: 350px;
-    height: 365px;
-    margin-top: 100px;
-    margin-left: auto;
-    margin-right: auto;
-    background-color: white;
-    border: 1px solid #ededed;
-    text-align: center;
-    position: relative;
-}
-
 .email-sent-message {
     height: inherit;
     margin-top: 90px;
@@ -800,8 +787,7 @@ header .dropdown a:hover {
 .reset-password-box {
     width: 90%;
     max-width: 350px;
-    height: 475px;
-    margin-top: 100px;
+    margin-top: 40px;
     margin-bottom: 20px;
     margin-left: auto;
     margin-right: auto;
@@ -814,8 +800,7 @@ header .dropdown a:hover {
 .update-user-box {
     width: 90%;
     max-width: 350px;
-    min-height: 365px;
-    margin-top: 100px;
+    margin-top: 40px;
     margin-left: auto;
     margin-right: auto;
     background-color: white;
@@ -917,8 +902,21 @@ select.enter-speaks-select option {
 .enter-speaks-box form .login-button,
 .update-speaks-box form .login-button {
     margin-top: 0;
+    margin-bottom: 15px;
     position: relative;
     z-index: 3;
+}
+
+.update-speaks-box > div .login-button,
+.update-user-box > div .login-button,
+.reset-password-box > div .login-button {
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+.update-user-box form .login-button,
+.reset-password-box form .login-button {
+    margin-bottom: 10px;
 }
 
 @media only screen and (min-width: 700px) {

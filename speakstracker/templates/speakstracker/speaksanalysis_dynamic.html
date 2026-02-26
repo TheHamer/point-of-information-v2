@@ -26,10 +26,14 @@
 <style>
 /* Filter Controls Styling */
 .filter-section {
-    background: #1e1e2e;
-    border-radius: 8px;
+    background: white;
+    border: 1px solid #ededed;
+    border-radius: 5px;
     padding: 12px;
     margin-bottom: 24px;
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
 }
 
 .filter-controls {
@@ -47,7 +51,7 @@
 
 .filter-group label {
     font-size: 0.85em;
-    color: #888;
+    color: #666;
     font-weight: 500;
 }
 
@@ -67,22 +71,22 @@
 
 .filter-btn {
     padding: 6px 12px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
+    border: 1px solid #ededed;
+    background: #f9f9f9;
+    color: #333;
+    border-radius: 5px;
     cursor: pointer;
     font-size: 0.9em;
     transition: all 0.2s ease;
 }
 
 .filter-btn:hover {
-    background: #3d3d5c;
+    background: #ededed;
 }
 
 .filter-btn.active {
-    background: #5865f2;
-    border-color: #5865f2;
+    background: #7F00FF;
+    border-color: #7F00FF;
     color: #fff;
 }
 
@@ -93,10 +97,10 @@
 
 .filter-select {
     padding: 6px 10px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
+    border: 1px solid #ededed;
+    background: white;
+    color: #333;
+    border-radius: 5px;
     min-width: 150px;
     min-height: 32px;
 }
@@ -111,28 +115,30 @@
 
 .filter-date {
     padding: 6px 10px;
-    border: 1px solid #3d3d5c;
-    background: #2d2d44;
-    color: #ccc;
-    border-radius: 4px;
+    border: 1px solid #ededed;
+    background: white;
+    color: #333;
+    border-radius: 5px;
 }
 
 #clear-filters {
     padding: 8px 16px;
-    background: #dc3545;
+    background: red;
     border: none;
     color: #fff;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     font-weight: 500;
+    transition-duration: 0.3s;
 }
 
 #clear-filters:hover {
-    background: #c82333;
+    background: #BF40BF;
+    box-shadow: 3px 3px 3px -3px gray;
 }
 
-.no-data {
-    color: #888;
+.filter-section .no-data {
+    color: #8E8E90;
     font-style: italic;
     font-size: 0.85em;
     line-height: 1.2;
@@ -152,13 +158,6 @@
 }
 
 /* Heatmap Section */
-.heatmap-section {
-    background: #1e1e2e;
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 24px;
-}
-
 .heatmap-container {
     max-width: 100%;
     margin: 0;
@@ -184,24 +183,26 @@
 
 .toggle-btn {
     padding: 8px 16px;
-    background: #5865f2;
+    background: #7F00FF;
     border: none;
     color: #fff;
-    border-radius: 4px;
+    border-radius: 5px;
     cursor: pointer;
     font-weight: 500;
+    transition-duration: 0.3s;
 }
 
 .toggle-btn:hover {
-    background: #4752c4;
+    background: #BF40BF;
+    box-shadow: 3px 3px 3px -3px gray;
 }
 
 /* Active filter indicator */
 .filter-active-indicator {
-    background: #5865f2;
+    background: #7F00FF;
     color: #fff;
     padding: 4px 8px;
-    border-radius: 4px;
+    border-radius: 5px;
     font-size: 0.8em;
     margin-left: auto;
 }

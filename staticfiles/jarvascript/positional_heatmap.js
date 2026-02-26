@@ -21,7 +21,7 @@ const PositionalHeatmap = (function() {
    */
   function getHeatmapColor(value) {
     if (value === null || value === undefined) {
-      return '#1a1a2e'; // Dark background for null/self
+      return '#ededed'; // Light background for null/self
     }
     
     // Clamp value between 0 and 100
@@ -53,10 +53,10 @@ const PositionalHeatmap = (function() {
    */
   function getTextColor(value) {
     if (value === null || value === undefined) {
-      return '#888';
+      return '#8E8E90';
     }
-    // Use white text for better contrast
-    return value > 60 ? '#1a1a2e' : '#fff';
+    // Use dark text on light backgrounds, white on dark
+    return value > 60 ? '#333' : '#fff';
   }
   
   /**
@@ -82,7 +82,7 @@ const PositionalHeatmap = (function() {
       const headerCell = createCell(pos, 'header');
       headerCell.style.cssText += `
         font-weight: bold;
-        background: #2d2d44;
+        background: #7F00FF;
         color: #fff;
         display: flex;
         align-items: center;
@@ -97,7 +97,7 @@ const PositionalHeatmap = (function() {
       const rowLabel = createCell(rowPos, 'row-label');
       rowLabel.style.cssText += `
         font-weight: bold;
-        background: #2d2d44;
+        background: #7F00FF;
         color: #fff;
         display: flex;
         align-items: center;
@@ -390,8 +390,8 @@ function registerFilterCallback() {
             POSITIONS.forEach(colPos => {
               const cell = document.getElementById(`heatmap-cell-${rowPos}-${colPos}`);
               if (cell) {
-                cell.style.backgroundColor = '#1a1a2e';
-                cell.style.color = '#888';
+                cell.style.backgroundColor = '#ededed';
+                cell.style.color = '#8E8E90';
                 cell.innerHTML = '<span style="font-size: 0.8em;">—</span>';
               }
             });
