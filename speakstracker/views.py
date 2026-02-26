@@ -409,7 +409,7 @@ def speaksanalysis_static(request):
             "heatmap_data": None,
         }
 
-        return render(request, 'speakstracker/speaksanalysis.html', context)
+        return render(request, 'speakstracker/speaksanalysis_static.html', context)
 
     speaks_calculate = speaks_analysis(speaks_data)
 
