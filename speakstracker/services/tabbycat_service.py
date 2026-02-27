@@ -137,17 +137,16 @@ class TabbycatService:
         """Find a speaker by name."""
         speakers = self.get_speakers(tournament_slug)
         for speaker in speakers:
-            # Construct full name: if last_name is null, only use name field
-            first_name = speaker.get('name') or ''
+            speaker_name = speaker.get('name') or ''
             last_name = speaker.get('last_name')
-            if last_name:
-                speaker_name = f"{first_name} {last_name}".strip()
-            else:
-                speaker_name = first_name
-            # Handle None/empty values: if name is None or empty, skip this speaker
             if not speaker_name:
                 continue
-            if speaker_name.lower() == name.lower():
+            name_lower = name.lower()
+            # Try matching name as-is (handles full name in 'name' field)
+            if speaker_name.lower() == name_lower:
+                return speaker
+            # Try matching with last_name appended (handles first-name-only 'name' field)
+            if last_name and f"{speaker_name} {last_name}".strip().lower() == name_lower:
                 return speaker
         return None
     
@@ -233,17 +232,15 @@ class TabbycatService:
         partner = None
         partner_url = None
         for team_speaker in team.get('speakers', []):
-            # Construct full name: if last_name is null, only use name field
-            first_name = team_speaker.get('name') or ''
-            last_name = team_speaker.get('last_name')
-            if last_name:
-                team_speaker_name = f"{first_name} {last_name}".strip()
-            else:
-                team_speaker_name = first_name
-            # Handle None/empty values: skip if name is None or empty
+            team_speaker_name = team_speaker.get('name') or ''
             if not team_speaker_name:
                 continue
-            if team_speaker_name.lower() != speaker_name.lower():
+            # Check if this is NOT the speaker we're looking for (i.e. it's the partner)
+            last_name = team_speaker.get('last_name')
+            combined_name = f"{team_speaker_name} {last_name}".strip() if last_name else team_speaker_name
+            is_same = (team_speaker_name.lower() == speaker_name.lower() or
+                       combined_name.lower() == speaker_name.lower())
+            if not is_same:
                 partner = team_speaker_name
                 partner_url = team_speaker.get('url', '')
                 break
