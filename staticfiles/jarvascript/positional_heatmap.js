@@ -216,14 +216,15 @@ const PositionalHeatmap = (function() {
         return;
       }
       
-      // Get full call from opponent_positions (stored as JSON string)
+      // Get full call from call field (stored as JSON string) or opponent_positions
       let fullCall = [];
-      if (entry.opponent_positions) {
+      const callData = entry.call || entry.opponent_positions;
+      if (callData) {
         try {
-          if (typeof entry.opponent_positions === 'string') {
-            fullCall = JSON.parse(entry.opponent_positions);
-          } else if (Array.isArray(entry.opponent_positions)) {
-            fullCall = entry.opponent_positions;
+          if (typeof callData === 'string') {
+            fullCall = JSON.parse(callData);
+          } else if (Array.isArray(callData)) {
+            fullCall = callData;
           }
         } catch (e) {
           // Invalid JSON, ignore
