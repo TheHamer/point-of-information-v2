@@ -634,7 +634,7 @@ def extract_tournament_slug_from_url(url: str) -> Optional[str]:
                     'rounds', 'speakers', 'teams', 'adjudicators']
     
     for part in path_parts:
-        if part not in exclude_paths and not part.isdigit():
+        if part not in exclude_paths:
             return part
     
     return None
