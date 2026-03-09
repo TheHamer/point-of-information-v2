@@ -79,8 +79,8 @@ class TabbycatService:
     def _create_session(self) -> requests.Session:
         """Create a requests session with retry logic."""
         session = requests.Session()
-        retry = Retry(connect=3, backoff_factor=0.5, 
-                     status_forcelist=[500, 502, 503, 504])
+        retry = Retry(total=3, connect=3, status=1, backoff_factor=0.5,
+                     status_forcelist=[502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry)
         session.mount('http://', adapter)
         session.mount('https://', adapter)
@@ -137,17 +137,16 @@ class TabbycatService:
         """Find a speaker by name."""
         speakers = self.get_speakers(tournament_slug)
         for speaker in speakers:
-            # Construct full name: if last_name is null, only use name field
-            first_name = speaker.get('name') or ''
+            speaker_name = speaker.get('name') or ''
             last_name = speaker.get('last_name')
-            if last_name:
-                speaker_name = f"{first_name} {last_name}".strip()
-            else:
-                speaker_name = first_name
-            # Handle None/empty values: if name is None or empty, skip this speaker
             if not speaker_name:
                 continue
-            if speaker_name.lower() == name.lower():
+            name_lower = name.lower()
+            # Try matching name as-is (handles full name in 'name' field)
+            if speaker_name.lower() == name_lower:
+                return speaker
+            # Try matching with last_name appended (handles first-name-only 'name' field)
+            if last_name and f"{speaker_name} {last_name}".strip().lower() == name_lower:
                 return speaker
         return None
     
@@ -233,28 +232,31 @@ class TabbycatService:
         partner = None
         partner_url = None
         for team_speaker in team.get('speakers', []):
-            # Construct full name: if last_name is null, only use name field
-            first_name = team_speaker.get('name') or ''
-            last_name = team_speaker.get('last_name')
-            if last_name:
-                team_speaker_name = f"{first_name} {last_name}".strip()
-            else:
-                team_speaker_name = first_name
-            # Handle None/empty values: skip if name is None or empty
+            team_speaker_name = team_speaker.get('name') or ''
             if not team_speaker_name:
                 continue
-            if team_speaker_name.lower() != speaker_name.lower():
+            # Check if this is NOT the speaker we're looking for (i.e. it's the partner)
+            last_name = team_speaker.get('last_name')
+            combined_name = f"{team_speaker_name} {last_name}".strip() if last_name else team_speaker_name
+            is_same = (team_speaker_name.lower() == speaker_name.lower() or
+                       combined_name.lower() == speaker_name.lower())
+            if not is_same:
                 partner = team_speaker_name
                 partner_url = team_speaker.get('url', '')
                 break
         
-        # Get round scores for speaker
-        speaker_round_scores = self.get_speaker_round_scores(tournament_slug)
-        speaker_scores = self._find_speaker_scores(speaker_round_scores, speaker.get('url'))
-        
+        # Get round scores for speaker (this endpoint returns 500 on some servers)
+        speaker_scores = []
+        scores_from_standings = True
+        try:
+            speaker_round_scores = self.get_speaker_round_scores(tournament_slug)
+            speaker_scores = self._find_speaker_scores(speaker_round_scores, speaker.get('url'))
+        except Exception:
+            scores_from_standings = False
+
         # Get partner's round scores to determine speech order
         partner_scores = []
-        if partner_url:
+        if scores_from_standings and partner_url:
             partner_scores = self._find_speaker_scores(speaker_round_scores, partner_url)
         
         # Get team round scores
@@ -296,12 +298,13 @@ class TabbycatService:
         # Build positions dict by checking each round's pairings
         positions = {}
         opponent_positions = {}
-        
+        speaker_url = speaker.get('url', '').rstrip('/')
+
         for round_info in rounds:
             round_seq = round_info.get('seq')
             if round_seq is None:
                 continue
-                
+
             try:
                 pairings = self.get_round_pairings(tournament_slug, round_seq)
                 position_data = self._find_team_position_in_round(
@@ -310,11 +313,21 @@ class TabbycatService:
                 )
                 if position_data:
                     team_position = position_data['team_position']
-                    
+
+                    # If standings/rounds endpoint failed, extract speaks from ballots
+                    if not scores_from_standings:
+                        ballot_speaks = self._extract_speaks_from_ballots(
+                            position_data, speaker_url, round_seq
+                        )
+                        if ballot_speaks is not None:
+                            speaks[f"R{round_seq}"] = ballot_speaks['score']
+                            if ballot_speaks.get('position') is not None:
+                                speech_positions_by_round[round_seq] = ballot_speaks['position']
+
                     # Determine speaker position from speech data
                     speech_order = speech_positions_by_round.get(round_seq)
                     speaker_position = self._get_speaker_role(team_position, speech_order)
-                    
+
                     positions[f"R{round_seq}"] = {
                         "team_position": team_position,
                         "speaker_position": speaker_position
@@ -459,6 +472,7 @@ class TabbycatService:
                 
                 # First, try to construct full call from ballots
                 full_call = None
+                ballots = None
                 if tournament_slug and round_seq is not None:
                     try:
                         debate_id = pairing.get('id')
@@ -479,7 +493,9 @@ class TabbycatService:
                 
                 if full_call:
                     result['full_call'] = full_call
-                
+                if ballots:
+                    result['ballots'] = ballots
+
                 return result
         
         return None
@@ -604,6 +620,34 @@ class TabbycatService:
         
         return None
     
+    def _extract_speaks_from_ballots(self, position_data: Dict, speaker_url: str,
+                                     round_seq: int) -> Optional[Dict]:
+        """
+        Extract a speaker's score and speech position from ballot data.
+
+        Returns dict with 'score' and 'position' keys, or None if not found.
+        """
+        ballots = position_data.get('ballots')
+        if not ballots:
+            return None
+
+        ballot = ballots[0]
+        result = ballot.get('result')
+        if not result:
+            return None
+
+        for sheet in result.get('sheets', []):
+            for team_result in sheet.get('teams', []):
+                for speech_idx, speech in enumerate(team_result.get('speeches', []), start=1):
+                    spk_url = speech.get('speaker', '').rstrip('/')
+                    if spk_url == speaker_url and not speech.get('ghost', False):
+                        return {
+                            'score': speech.get('score', 0),
+                            'position': speech_idx
+                        }
+
+        return None
+
     def _side_to_position(self, side: Any) -> Optional[str]:
         """Convert a side value to a team position."""
         if side is None:
@@ -634,7 +678,7 @@ def extract_tournament_slug_from_url(url: str) -> Optional[str]:
                     'rounds', 'speakers', 'teams', 'adjudicators']
     
     for part in path_parts:
-        if part not in exclude_paths and not part.isdigit():
+        if part not in exclude_paths:
             return part
     
     return None

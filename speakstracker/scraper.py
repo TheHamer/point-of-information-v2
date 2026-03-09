@@ -74,27 +74,62 @@ class PersonDataScraper:
         return new_url
         
     def __get_soup(self, page_path):
-        
+
         html_content = requests.get(page_path).text
 
         soup = BeautifulSoup(html_content, 'html.parser')
-        
+
         return soup
+
+    def __extract_vue_data(self, soup):
+        """Find the script tag containing tablesData/vueData and extract the JSON array."""
+        for tag in soup.find_all('script'):
+            text = tag.text
+            if not text:
+                continue
+            # Try to find tablesData pattern (newer Tabbycat versions)
+            if 'tablesData' in text:
+                match = re.search(r'tablesData:\s*\[', text)
+                if match:
+                    # Find the start of the array
+                    start = match.start() + text[match.start():].index('[')
+                    # Extract from '[' to the end, trimming trailing JS
+                    raw = text[start:]
+                    # The array ends before the closing of the vueData object
+                    # Parse by finding balanced brackets
+                    bracket_depth = 0
+                    end = 0
+                    for i, ch in enumerate(raw):
+                        if ch == '[':
+                            bracket_depth += 1
+                        elif ch == ']':
+                            bracket_depth -= 1
+                            if bracket_depth == 0:
+                                end = i + 1
+                                break
+                    array_str = raw[:end]
+                    data_list = json.loads(array_str)
+                    return data_list
+            # Legacy pattern: script tag text starts with data directly
+            split_result = text.split("[", 1)
+            if len(split_result) >= 2 and '"head"' in text:
+                cut_tag_0 = split_result[1][:-10]
+                return json.loads(cut_tag_0)
+        raise ValueError("Could not find tablesData in any script tag")
     
     def __get_team_name_and_partner(self, name):
         new_path = self.path + "participants/list/"
         soup = self.__get_soup(new_path)
-        tags = soup.find_all('script')
-        if len(tags) < 4:
-            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
-        split_result = tags[-4].text.split("[", 1)
-        if len(split_result) < 2:
-            raise ValueError(f"Script tag text does not contain expected '[' pattern")
-        cut_tag_0 = split_result[1][:-10]
-        cut_tag_0_split = cut_tag_0.split(', {"head":', 1)
-        if len(cut_tag_0_split) < 2:
-            raise ValueError(f"Script tag data does not contain expected '{{\"head\":' pattern")
-        raw_data_speaker = json.loads('{"head":' + cut_tag_0_split[1])
+        data_list = self.__extract_vue_data(soup)
+        # participants page has multiple tables; speaker data is the one with "name" and "team" keys
+        raw_data_speaker = None
+        for table in data_list:
+            keys = [h["key"] for h in table.get("head", [])]
+            if "name" in keys and "team" in keys:
+                raw_data_speaker = table
+                break
+        if raw_data_speaker is None:
+            raise ValueError("Could not find speaker table in participant data")
                 
         team_index = None
         name_index = None
@@ -131,14 +166,8 @@ class PersonDataScraper:
 
         new_path = self.path + "tab/speaker/"
         soup = self.__get_soup(new_path)
-        tags = soup.find_all('script')
-        if len(tags) < 4:
-            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
-        split_result = tags[-4].text.split("[", 1)
-        if len(split_result) < 2:
-            raise ValueError(f"Script tag text does not contain expected '[' pattern")
-        cut_tag_0 = split_result[1][:-10]
-        raw_data = json.loads(cut_tag_0)
+        data_list = self.__extract_vue_data(soup)
+        raw_data = data_list[0] if isinstance(data_list, list) and len(data_list) > 0 else data_list
         
         rounds = {}
         
@@ -161,17 +190,11 @@ class PersonDataScraper:
         return speaks
     
     def __get_points(self, team_name):
-        
+
         new_path = self.path + "tab/team/"
         soup = self.__get_soup(new_path)
-        tags = soup.find_all('script')
-        if len(tags) < 4:
-            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
-        split_result = tags[-4].text.split("[", 1)
-        if len(split_result) < 2:
-            raise ValueError(f"Script tag text does not contain expected '[' pattern")
-        cut_tag_0 = split_result[1][:-10]
-        raw_data = json.loads(cut_tag_0)
+        data_list = self.__extract_vue_data(soup)
+        raw_data = data_list[0] if isinstance(data_list, list) and len(data_list) > 0 else data_list
         
         rounds = {}
         
@@ -196,14 +219,8 @@ class PersonDataScraper:
     
     def __get_round_results(self, path, team_name, name):
         soup = self.__get_soup(path)
-        tags = soup.find_all('script')
-        if len(tags) < 4:
-            raise ValueError(f"Expected at least 4 script tags, found {len(tags)}")
-        split_result = tags[-4].text.split("[", 1)
-        if len(split_result) < 2:
-            raise ValueError(f"Script tag text does not contain expected '[' pattern")
-        cut_tag_0 = split_result[1][:-10]
-        raw_data = json.loads(cut_tag_0)
+        data_list = self.__extract_vue_data(soup)
+        raw_data = data_list[0] if isinstance(data_list, list) and len(data_list) > 0 else data_list
         
         ballot_index = None
         
